@@ -2,6 +2,30 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## Cross-browser check (2026-09-17)
+
+Run with Playwright from a scratch folder (not part of the repo): the same scripted session in
+WebKit 26.6 (Safari's engine, on Windows), Microsoft Edge 153, and Playwright's Firefox build.
+The session covers first visit, loading the task, unplugging, Settings, Run without a key, a seeded
+tree, Compare, the blind mask and `inert`, the lineage summary, fonts, and the palette.
+
+- **WebKit (Safari engine): all 20 checks pass, no errors** after one fix. The tree row labels
+  ("full brief", "– Context", "same brief") had zero width at the drawer's fixed 320 px width in
+  every browser: glyph, code, seven chips, and time filled the line and the label was squeezed out.
+  Chromium still returned the text to scripts, WebKit did not, which is how it surfaced. Fix: the row's
+  flex layout moved from the `<button>` to an inner span, and the label now wraps to a full line of
+  its own when less than 120 px is left. Checked visually in WebKit and Edge.
+- **Edge 153: all 20 checks pass, no errors.** The only console line was a 404 for `favicon.ico`,
+  silenced with an empty icon link in `index.html`.
+- **Firefox: not run.** Playwright's Firefox build fails to start on this machine with "side-by-side
+  configuration is incorrect", which means the Microsoft Visual C++ runtime it needs is not
+  installed, and no regular Firefox is installed here. Nothing in the app is Firefox-specific
+  (`inert`, ResizeObserver, `<details>`, ES modules are all supported since Firefox 112), but it
+  still needs one real look. Options: install Firefox (`winget install Mozilla.Firefox`) and open
+  `http://localhost:8765`, or ask Johnny to do section 8 of README-FOR-JOHNNY in Firefox.
+
+Still outstanding: the recorded walkthrough file and a live run with a real key.
+
 ## QA pass by John Ledford (merged 2026-09-17)
 
 Branch `fix/qa-pass-2026-09`, four commits, reviewed and fast-forwarded into main. All 82 tests pass.

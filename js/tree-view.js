@@ -69,12 +69,16 @@ export function mountTree({ host, onLoad, onCompare, onNote }) {
         title: TREE.load,
         onclick: () => onLoad(run),
       }, [
-        el('span', { class: 'tree-glyph', 'aria-hidden': 'true', text: glyph }),
-        el('span', { class: 'tree-code', text: codeOf(state.runs, run) }),
-        chipsFor(run.brief, hiddenBrief),
-        el('span', { class: 'tree-label', text: labelText(state.runs, run) + (run.note ? ` · ${run.note}` : '') }),
-        el('span', { class: 'tree-time', text: timeOf(run) }),
-        isCurrent ? el('span', { class: 'tree-current-mark', text: TREE.current }) : null,
+        // The flex row lives on an inner span, not on the <button>: WebKit (Safari) gives
+        // flex children of a button no width, which hid the labels entirely.
+        el('span', { class: 'tree-node-inner' }, [
+          el('span', { class: 'tree-glyph', 'aria-hidden': 'true', text: glyph }),
+          el('span', { class: 'tree-code', text: codeOf(state.runs, run) }),
+          chipsFor(run.brief, hiddenBrief),
+          el('span', { class: 'tree-label', text: labelText(state.runs, run) + (run.note ? ` · ${run.note}` : '') }),
+          el('span', { class: 'tree-time', text: timeOf(run) }),
+          isCurrent ? el('span', { class: 'tree-current-mark', text: TREE.current }) : null,
+        ]),
       ]),
       el('button', {
         type: 'button',

@@ -124,15 +124,14 @@ The app is supposed to explain every failure in plain words, never show raw erro
    the blind round. Press **Copy lineage summary** again and compare with your earlier paste: apart
    from the date and time in the first line, it should be identical.
 
-## 8. Open it in other browsers
+## 8. Open it in Firefox
 
-The app was only checked in a Chrome-style browser. Please open `http://localhost:8765` in each of
-these, if you have them, and do just three things in each: look at the field, press **Load a task**
-then **Load the walkthrough task**, and unplug one element. Note anything that looks broken or odd.
-
-- Firefox
-- Safari (Mac)
-- Microsoft Edge
+Safari's engine (WebKit) and Microsoft Edge have already been checked by script and pass. Firefox
+has not been, because neither Ward nor I had it installed. Please install Firefox from
+https://www.mozilla.org/firefox/ if you do not have it, open `http://localhost:8765`, and do just
+three things: look at the field, press **Load a task** then **Load the walkthrough task**, and unplug
+one element. Note anything that looks broken or odd. If you happen to have a Mac, a look in real
+Safari is welcome too, but not required.
 
 ## 9. What to send back to Ward
 
