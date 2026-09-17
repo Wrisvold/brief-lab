@@ -15,11 +15,11 @@ export function renderStatus(host, entry, values = {}, kind = 'info', busy = fal
     return;
   }
   host.className = `status status-${kind}${busy ? ' is-busy' : ''}`;
-  host.replaceChildren(
+  host.replaceChildren(...[
     el('p', { class: 'status-title', text: fill(entry.title, values) }),
     entry.message ? el('p', { text: fill(entry.message, values) }) : null,
     entry.next ? el('p', { class: 'status-next', text: fill(entry.next, values) }) : null,
-  );
+  ].filter(Boolean));
 }
 
 // [entry, values] for any error. Unknown errors become ERRORS.unexpected.
