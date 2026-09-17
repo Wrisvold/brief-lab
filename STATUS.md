@@ -17,12 +17,16 @@ tree, Compare, the blind mask and `inert`, the lineage summary, fonts, and the p
   its own when less than 120 px is left. Checked visually in WebKit and Edge.
 - **Edge 153: all 20 checks pass, no errors.** The only console line was a 404 for `favicon.ico`,
   silenced with an empty icon link in `index.html`.
-- **Firefox: not run.** Playwright's Firefox build fails to start on this machine with "side-by-side
-  configuration is incorrect", which means the Microsoft Visual C++ runtime it needs is not
-  installed, and no regular Firefox is installed here. Nothing in the app is Firefox-specific
-  (`inert`, ResizeObserver, `<details>`, ES modules are all supported since Firefox 112), but it
-  still needs one real look. Options: install Firefox (`winget install Mozilla.Firefox`) and open
-  `http://localhost:8765`, or ask Johnny to do section 8 of README-FOR-JOHNNY in Firefox.
+- **Firefox 156 (the real browser, installed with winget and driven through Selenium): all 20
+  checks pass, no errors.** Playwright's own Firefox build would not start on this machine
+  ("side-by-side configuration is incorrect", even with the Visual C++ runtime present), so the
+  check was re-run against stock Firefox instead, which is the better test anyway. The three-column
+  layout, wires, dashed unplugged nodes, Compare, the blind mask, and `inert` all behave as in Edge
+  and WebKit. The lineage summary fell back to the text panel because headless Firefox blocks the
+  clipboard; that is the designed fallback.
+
+All four target engines (Chromium/Edge, WebKit/Safari, Firefox) have now been checked by script on
+Windows. What has not been seen is Safari itself on a Mac; the engine is the same, the shell is not.
 
 Still outstanding: the recorded walkthrough file and a live run with a real key.
 
