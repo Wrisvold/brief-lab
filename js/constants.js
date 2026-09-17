@@ -102,6 +102,11 @@ export const STORAGE_KEY_TREE = 'brief-lab.tree.v1';
 export const STORAGE_KEY_SETTINGS = 'brief-lab.settings.v1';
 export const STORAGE_KEY_API_KEY = 'brief-lab.api-key';
 export const STORAGE_KEY_MODE = 'brief-lab.mode.v1';
+// The unsaved field (element text, plugs, prediction), so a reload does not lose typing.
+export const STORAGE_KEY_DRAFT = 'brief-lab.draft.v1';
+
+// Every key the app writes starts with this; "Clear everything" removes them all.
+export const STORAGE_PREFIX = 'brief-lab.';
 
 // When the saved tree grows past this many bytes the app warns and suggests export.
 export const STORAGE_WARN_BYTES = 2 * 1024 * 1024;

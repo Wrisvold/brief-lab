@@ -240,3 +240,28 @@ export function splitCriteria(text) {
     .map((line) => line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').trim())
     .filter(Boolean);
 }
+
+// Build a brief from a task file such as data/walkthrough.json:
+//   { elements: { persona: { text }, ..., rules: { do, dont, fallback } } }
+// Missing elements stay empty. Every element starts plugged in.
+export function briefFromTask(task) {
+  const brief = makeBrief();
+  const elements = (task && task.elements) || {};
+  for (const el of ELEMENTS) {
+    const src = elements[el.key];
+    if (!src) continue;
+    if (el.key === 'rules') {
+      brief.rules.do = String(src.do || '');
+      brief.rules.dont = String(src.dont || '');
+      brief.rules.fallback = String(src.fallback || '');
+    } else {
+      brief[el.key].text = String(src.text || '');
+    }
+  }
+  return brief;
+}
+
+// True when any element has text (used to ask before replacing the field).
+export function briefHasAnyText(brief) {
+  return ELEMENT_KEYS.some((k) => hasText(brief, k));
+}

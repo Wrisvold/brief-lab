@@ -1,34 +1,18 @@
 // Brief Lab — main.js
-// Entry point. Phase 0: fills the page shell from copy.js and shows the seven element
-// nodes as read-only placeholders. Phase 1 replaces the placeholders with the live field.
+// Entry point: fills the page shell from copy.js, mounts the field, keeps the assembled
+// brief panel live, saves the draft, and wires the top-bar controls.
 
-import { APP, ELEMENT_HINTS, RULES_HINTS, EXPLAINERS, FIELD, PROMPT, OUTPUT, TREE, COMPARE, SETTINGS, FOOTER } from './copy.js';
-import { ELEMENTS, RULES_FIELDS } from './model.js';
-
-// ---------- tiny DOM helpers (no innerHTML with model text, ever) ----------
-
-function $(id) {
-  return document.getElementById(id);
-}
-
-function el(tag, attrs = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === 'class') node.className = v;
-    else if (k === 'text') node.textContent = v;
-    else if (v !== null && v !== undefined) node.setAttribute(k, v);
-  }
-  for (const child of [].concat(children)) {
-    if (child == null) continue;
-    node.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
-  }
-  return node;
-}
-
-function setText(id, text) {
-  const node = $(id);
-  if (node) node.textContent = text;
-}
+import {
+  APP, EXPLAINERS, FIELD, PROMPT, OUTPUT, TREE, COMPARE, SETTINGS, FOOTER, ERRORS, WALKTHROUGH, fill,
+} from './copy.js';
+import {
+  STORAGE_KEY_DRAFT, STORAGE_KEY_MODE, STORAGE_PREFIX, WALKTHROUGH_TASK_URL,
+} from './constants.js';
+import { makeBrief, copyBrief, assemble, estimateTokens, briefFromTask, briefHasAnyText } from './model.js';
+import { $, el, setText, show, debounce } from './dom.js';
+import { local, session } from './storage.js';
+import { state, subscribe, notify } from './state.js';
+import { mountField } from './field.js';
 
 // ---------- shell ----------
 
@@ -48,8 +32,8 @@ function renderShell() {
   setText('settings-title', SETTINGS.title);
   setText('footer-note', FOOTER.storageNote);
   setText('btn-clear-everything', FOOTER.clearEverything);
-  setText('prompt-text', PROMPT.empty);
   setText('output-text', OUTPUT.empty);
+  $('output-text').classList.add('muted');
   setText('tree-list', TREE.empty);
 
   for (const details of document.querySelectorAll('details.explainer[data-explainer]')) {
@@ -64,40 +48,208 @@ function renderShell() {
   }
 }
 
-// ---------- field placeholders (Phase 0) ----------
-
-function renderNodePlaceholder(element) {
-  const head = el('div', { class: 'node-head' }, [
-    el('span', { class: 'node-name' }, [
-      el('span', { class: 'node-number', text: `${element.number} ·` }),
-      element.name,
-    ]),
-    el('button', { type: 'button', class: 'plug', 'aria-pressed': 'true', text: FIELD.plugged }),
-  ]);
-  const hint = el('p', { class: 'node-hint', text: ELEMENT_HINTS[element.key] });
-  const body = [];
-  if (element.key === 'rules') {
-    for (const f of RULES_FIELDS) {
-      const id = `node-${element.key}-${f.key}`;
-      body.push(
-        el('div', { class: 'node-subfield' }, [
-          el('label', { for: id }, [f.label + ' ', el('span', { class: 'subhint', text: RULES_HINTS[f.key] })]),
-          el('textarea', { id, rows: '2', 'aria-label': `${element.name}: ${f.label}` }),
-        ]),
-      );
-    }
-  } else {
-    body.push(el('textarea', { id: `node-${element.key}`, rows: '3', 'aria-label': element.name }));
+// A status block: title, message, next step. Used for errors and progress.
+export function renderStatus(host, entry, values = {}, kind = 'info') {
+  if (!entry) {
+    host.replaceChildren();
+    return;
   }
-  return el('section', { class: 'node', 'data-element': element.key }, [head, hint, ...body]);
+  host.className = `status status-${kind}`;
+  host.replaceChildren(
+    el('p', { class: 'status-title', text: fill(entry.title, values) }),
+    entry.message ? el('p', { text: fill(entry.message, values) }) : null,
+    entry.next ? el('p', { class: 'status-next', text: fill(entry.next, values) }) : null,
+  );
 }
 
-function renderField() {
-  const host = $('field-nodes');
-  host.replaceChildren(...ELEMENTS.map(renderNodePlaceholder));
+// ---------- the assembled-brief panel ----------
+
+function renderPrompt() {
+  const prompt = assemble(state.brief);
+  const pre = $('prompt-text');
+  pre.textContent = prompt || PROMPT.empty;
+  pre.classList.toggle('muted', prompt.length === 0);
+  setText('prompt-counts', fill(PROMPT.counts, { chars: prompt.length, tokens: estimateTokens(prompt) }));
+}
+
+function mountPromptActions() {
+  const copyButton = el('button', {
+    type: 'button',
+    class: 'button button-quiet button-small',
+    text: PROMPT.copy,
+    onclick: async () => {
+      try {
+        await navigator.clipboard.writeText(assemble(state.brief));
+        copyButton.textContent = PROMPT.copied;
+        setTimeout(() => { copyButton.textContent = PROMPT.copy; }, 1500);
+      } catch {
+        // Clipboard blocked: the text is selectable in the panel anyway.
+        $('prompt-text').focus();
+      }
+    },
+  });
+  $('prompt-actions').replaceChildren(copyButton);
+}
+
+// ---------- the draft (what is on the field) ----------
+
+const saveDraft = debounce(() => {
+  local.set(STORAGE_KEY_DRAFT, { brief: state.brief, prediction: state.prediction });
+}, 300);
+
+function loadDraft() {
+  const draft = local.get(STORAGE_KEY_DRAFT, null);
+  if (!draft || typeof draft !== 'object') return;
+  state.brief = copyBrief(draft.brief);
+  state.prediction = String(draft.prediction || '');
+}
+
+// ---------- Load a task / Start blank ----------
+
+async function loadWalkthroughTask() {
+  let task;
+  try {
+    const res = await fetch(WALKTHROUGH_TASK_URL, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(String(res.status));
+    task = await res.json();
+  } catch {
+    renderStatus($('output-status'), ERRORS.taskLoad, {}, 'error');
+    return;
+  }
+  state.brief = briefFromTask(task);
+  state.prediction = '';
+  field.syncInputs();
+  notify('brief');
+}
+
+function startBlank() {
+  state.brief = makeBrief();
+  state.prediction = '';
+  field.syncInputs();
+  field.focusFirstEmpty();
+  notify('brief');
+}
+
+function mountFieldActions() {
+  const menu = el('details', { class: 'menu' });
+  const closeMenu = () => menu.removeAttribute('open');
+  const guarded = (fn) => () => {
+    closeMenu();
+    if (briefHasAnyText(state.brief) && !window.confirm(FIELD.loadConfirm)) return;
+    fn();
+  };
+  menu.append(
+    el('summary', { class: 'button button-secondary button-small', text: FIELD.loadTask }),
+    el('div', { class: 'menu-list' }, [
+      el('button', { type: 'button', class: 'menu-item', text: FIELD.loadWalkthroughTask, onclick: guarded(loadWalkthroughTask) }),
+      el('button', { type: 'button', class: 'menu-item', text: FIELD.startBlank, onclick: guarded(startBlank) }),
+    ]),
+  );
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target)) closeMenu();
+  });
+  $('field-actions').replaceChildren(menu);
+}
+
+// ---------- mode ----------
+
+function setMode(mode) {
+  state.mode = mode === 'walkthrough' ? 'walkthrough' : 'free';
+  local.set(STORAGE_KEY_MODE, state.mode);
+  $('mode-walkthrough').setAttribute('aria-pressed', state.mode === 'walkthrough' ? 'true' : 'false');
+  $('mode-free').setAttribute('aria-pressed', state.mode === 'free' ? 'true' : 'false');
+  const stepper = $('stepper');
+  show(stepper, state.mode === 'walkthrough');
+  if (state.mode === 'walkthrough' && stepper.childElementCount === 0) {
+    stepper.replaceChildren(el('p', { class: 'small muted', text: WALKTHROUGH.comingLater }));
+  }
+  notify('mode');
+}
+
+function mountMode() {
+  $('mode-walkthrough').addEventListener('click', () => setMode('walkthrough'));
+  $('mode-free').addEventListener('click', () => setMode('free'));
+  // Free is the default until the walkthrough exists (Phase 5 changes the first-visit default).
+  setMode(local.get(STORAGE_KEY_MODE, 'free'));
+}
+
+// ---------- settings drawer (Phase 2 fills the body) ----------
+
+function mountSettings() {
+  const drawer = $('settings');
+  const button = $('btn-settings');
+  const open = (yes) => {
+    show(drawer, yes);
+    button.setAttribute('aria-expanded', yes ? 'true' : 'false');
+    if (yes) drawer.querySelector('button, input, select, textarea')?.focus();
+    else button.focus();
+  };
+  button.addEventListener('click', () => open(drawer.hasAttribute('hidden')));
+  $('settings-actions').replaceChildren(
+    el('button', { type: 'button', class: 'button button-quiet button-small', text: SETTINGS.close, onclick: () => open(false) }),
+  );
+  $('settings-body').replaceChildren(el('p', { class: 'muted', text: SETTINGS.comingLater }));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !drawer.hasAttribute('hidden')) open(false);
+  });
+}
+
+// ---------- clear everything ----------
+
+function mountClearEverything() {
+  $('btn-clear-everything').addEventListener('click', () => {
+    if (!window.confirm(TREE.clearConfirm)) return;
+    local.removeByPrefix(STORAGE_PREFIX);
+    session.removeByPrefix(STORAGE_PREFIX);
+    state.brief = makeBrief();
+    state.prediction = '';
+    state.runs = [];
+    state.currentRunId = null;
+    field.syncInputs();
+    renderStatus($('output-status'), null);
+    setText('output-text', OUTPUT.empty);
+    $('output-text').classList.add('muted');
+    notify('runs');
+    notify('brief');
+  });
+}
+
+// ---------- run (Phase 2 replaces this with the provider call) ----------
+
+function onRun() {
+  renderStatus($('output-status'), ERRORS.missingKey, {}, 'error');
 }
 
 // ---------- start ----------
 
 renderShell();
-renderField();
+loadDraft();
+
+const field = mountField({
+  host: $('field-nodes'),
+  onChange: (what) => {
+    notify('brief');
+    if (what !== 'prediction') saveDraft();
+    else saveDraft();
+  },
+  onRun,
+});
+
+subscribe((topic) => {
+  if (topic === 'brief' || topic === 'runs' || topic === 'settings') {
+    field.refresh();
+    renderPrompt();
+  }
+});
+
+mountPromptActions();
+mountFieldActions();
+mountMode();
+mountSettings();
+mountClearEverything();
+field.syncInputs();
+renderPrompt();
+
+if (!local.available()) {
+  renderStatus($('output-status'), ERRORS.storageUnavailable, {}, 'warn');
+}

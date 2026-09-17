@@ -82,6 +82,8 @@ export const SETTINGS = {
   testing: 'Testing...',
   testOk: 'Connected. {model} answered.',
   clearKey: 'Forget key',
+  close: 'Close',
+  comingLater: 'The provider settings arrive in the next build phase.',
   keyEntry: {
     whatIsAKey: 'An API key is a long string of letters and numbers that lets this page call a model on your behalf. It is not the same as a chat subscription: a ChatGPT or Gemini subscription is not an API key. You need a key from the provider\'s developer site.',
     whereGemini: 'Gemini: sign in at Google AI Studio and choose Get API key. The free tier is enough for this course.',
@@ -131,6 +133,11 @@ export const ERRORS = {
     message: 'The provider answered in a way the app does not recognise.',
     next: 'Try again. If it keeps happening, tell your instructor what you were doing.',
   },
+  taskLoad: {
+    title: 'Could not load the task.',
+    message: 'The task file did not arrive from the server.',
+    next: 'Reload the page. If it keeps happening, the data folder may be missing from the host.',
+  },
   storageUnavailable: {
     title: 'This browser is not saving anything.',
     message: 'Storage is blocked or full, so runs will disappear when you close the tab.',
@@ -157,6 +164,11 @@ export const FIELD = {
   loadWalkthroughTask: 'Load the walkthrough task',
   startBlank: 'Start blank',
   loadConfirm: 'This replaces what is on the field. Your saved runs are not affected.',
+  assemblerName: 'Brief',
+  assemblerHint: 'The plugged elements, assembled in framework order. This is what Run sends.',
+  pluggedList: 'Plugged: {list}',
+  nothingPlugged: 'Nothing plugged in.',
+  wiresLabel: 'Wires from each plugged element into the brief',
 };
 
 // The assembled-brief panel.
@@ -277,6 +289,7 @@ export const WALKTHROUGH = {
   replayLive: 'Replay live with my key',
   noKeyOffer: 'No key yet? You can replay recorded runs to see the walkthrough, then repeat any stop live once you have a key.',
   noRecording: 'No recorded run is available for this stop.',
+  comingLater: 'The walkthrough arrives in a later build phase.',
   end: 'The walkthrough is over. The field and the tree are yours; keep going in Free mode.',
   stops: [
     {

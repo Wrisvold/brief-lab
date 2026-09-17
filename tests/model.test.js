@@ -2,8 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ELEMENTS, ELEMENT_KEYS, makeBrief, copyBrief, assemble, isPlugged, pluggedKeys,
-  estimateTokens, makeRun, sameBrief, splitCriteria,
+  estimateTokens, makeRun, sameBrief, splitCriteria, briefFromTask, briefHasAnyText,
 } from '../js/model.js';
+import { readFileSync } from 'node:fs';
 
 function fullBrief() {
   const b = makeBrief();
@@ -197,4 +198,22 @@ test('splitCriteria splits on lines and strips bullets and numbers', () => {
     'Under 250 words.', 'Names the date.', 'Says who.', 'Dot.', 'One', 'Two',
   ]);
   assert.deepEqual(splitCriteria(''), []);
+});
+
+test('briefFromTask fills every element from the walkthrough file, all plugged', () => {
+  const task = JSON.parse(readFileSync(new URL('../data/walkthrough.json', import.meta.url), 'utf8'));
+  const b = briefFromTask(task);
+  assert.deepEqual(pluggedKeys(b), ELEMENT_KEYS);
+  assert.ok(b.task.text.startsWith('Draft a short internal announcement'));
+  assert.ok(b.rules.fallback.includes('does not cover'));
+  assert.ok(assemble(b).startsWith('Persona: '));
+  assert.ok(assemble(b).includes("\n  If you can't: "));
+});
+
+test('briefFromTask tolerates a partial task', () => {
+  const b = briefFromTask({ elements: { task: { text: 'Write.' } } });
+  assert.deepEqual(pluggedKeys(b), ['task']);
+  assert.equal(briefHasAnyText(b), true);
+  assert.equal(briefHasAnyText(makeBrief()), false);
+  assert.equal(briefHasAnyText(briefFromTask(null)), false);
 });

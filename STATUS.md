@@ -2,6 +2,48 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## Phase 1 — The field (done 2026-09-17)
+
+### Done
+- `js/field.js`: seven element nodes built once, updated in place (typing never loses focus). Each node
+  has its name, hint, text area, and a plug toggle; the Rules node has its three labelled sub-fields.
+  Unplugged nodes show a dashed border, an "Unplugged" label, and stay editable with text preserved.
+  An element that is plugged but empty shows "Empty. Counts as unplugged."
+- Wires: an SVG overlay draws a wire from each node's socket to a trunk that feeds the Brief node.
+  Unplugging visibly breaks the wire (dashed, with a gap) and hollows the socket. Redrawn on resize and
+  when a text area is resized.
+- The Brief node at the end of the chain: seven chips in framework order (filled or hollow), the plugged
+  list, character count and token estimate, the Prediction field with its label and hint, the
+  "changed since last run" line (appears once a node is loaded, Phase 3), and Run.
+- The Assembled brief panel in the output column shows the live monospace prompt with a Copy button.
+- Load a task menu: "Load the walkthrough task" (fetches `data/walkthrough.json`) and "Start blank".
+  Asks before replacing a non-empty field.
+- Draft persistence: the field (text, plugs, prediction) is saved to `localStorage` while typing and
+  restored on reload. Clear everything wipes every `brief-lab.` key and resets the field.
+- Mode indicator toggles and remembers Walkthrough / Free; Settings drawer opens and closes (body arrives
+  in Phase 2). Run currently shows the "No API key yet" message, which stays correct in Phase 2.
+- `js/dom.js` (element builder, no innerHTML), `js/storage.js` (try/catch wrappers), `js/state.js`.
+- `briefFromTask()` and `briefHasAnyText()` in `model.js`, with tests. 28 tests pass.
+
+### Decisions made on my own (say if any is wrong)
+1. **Where the full prompt text lives.** The Brief node on the field carries the chips, counts,
+   Prediction, and Run; the full monospace prompt sits in the "Assembled brief" panel at the top of
+   the output column, right beside the field. Showing the full text twice felt wasteful.
+2. **Nodes stack top-to-bottom** with the wire trunk on the right, rather than left-to-right. Seven
+   text areas in a row would not be readable.
+3. **Free is the first-visit default** until the walkthrough exists. Phase 5 switches the first
+   visit to Walkthrough, as the brief asks.
+4. **The draft is saved** to `localStorage` (key `brief-lab.draft.v1`) so a reload does not lose typing.
+   The brief only mentions the tree; this seemed like the same intent.
+
+### Model names (your answer to Phase 0 question 1)
+Phase 2 will fetch the live model list from the provider with the student's key and offer it as a
+pick-list next to the editable name field, so the names in `constants.js` are only a first guess.
+
+### Next
+- Phase 2: the provider layer (Settings body, key handling, model list, Test connection, Run against
+  Gemini and OpenAI, the error set with retry/backoff and countdown, progress states).
+
 ## Phase 0 — Scaffold and the sample task (done 2026-09-17)
 
 ### Done
