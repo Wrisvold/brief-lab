@@ -1,18 +1,23 @@
 // Brief Lab — main.js
-// Entry point: fills the page shell from copy.js, mounts the field, keeps the assembled
-// brief panel live, saves the draft, and wires the top-bar controls.
+// Entry point: fills the page shell from copy.js, mounts the field and the Settings
+// drawer, runs the brief against the provider, and files each run.
 
 import {
   APP, EXPLAINERS, FIELD, PROMPT, OUTPUT, TREE, COMPARE, SETTINGS, FOOTER, ERRORS, WALKTHROUGH, fill,
 } from './copy.js';
 import {
-  STORAGE_KEY_DRAFT, STORAGE_KEY_MODE, STORAGE_PREFIX, WALKTHROUGH_TASK_URL,
+  STORAGE_KEY_DRAFT, STORAGE_KEY_MODE, STORAGE_KEY_TREE, STORAGE_PREFIX, WALKTHROUGH_TASK_URL, EXPORT_FORMAT_VERSION,
 } from './constants.js';
-import { makeBrief, copyBrief, assemble, estimateTokens, briefFromTask, briefHasAnyText } from './model.js';
+import {
+  ELEMENTS, makeBrief, copyBrief, assemble, estimateTokens, briefFromTask, briefHasAnyText, makeRun, isPlugged,
+} from './model.js';
 import { $, el, setText, show, debounce } from './dom.js';
 import { local, session } from './storage.js';
-import { state, subscribe, notify } from './state.js';
+import { state, subscribe, notify, currentRun } from './state.js';
 import { mountField } from './field.js';
+import { loadSettings, mountSettingsBody, getKey } from './settings.js';
+import { callModel } from './provider.js';
+import { renderStatus, errorEntry } from './status.js';
 
 // ---------- shell ----------
 
@@ -32,9 +37,6 @@ function renderShell() {
   setText('settings-title', SETTINGS.title);
   setText('footer-note', FOOTER.storageNote);
   setText('btn-clear-everything', FOOTER.clearEverything);
-  setText('output-text', OUTPUT.empty);
-  $('output-text').classList.add('muted');
-  setText('tree-list', TREE.empty);
 
   for (const details of document.querySelectorAll('details.explainer[data-explainer]')) {
     const key = details.getAttribute('data-explainer');
@@ -46,20 +48,6 @@ function renderShell() {
       el('p', {}, [el('strong', { text: 'Why it matters. ' }), text.why]),
     );
   }
-}
-
-// A status block: title, message, next step. Used for errors and progress.
-export function renderStatus(host, entry, values = {}, kind = 'info') {
-  if (!entry) {
-    host.replaceChildren();
-    return;
-  }
-  host.className = `status status-${kind}`;
-  host.replaceChildren(
-    el('p', { class: 'status-title', text: fill(entry.title, values) }),
-    entry.message ? el('p', { text: fill(entry.message, values) }) : null,
-    entry.next ? el('p', { class: 'status-next', text: fill(entry.next, values) }) : null,
-  );
 }
 
 // ---------- the assembled-brief panel ----------
@@ -83,7 +71,6 @@ function mountPromptActions() {
         copyButton.textContent = PROMPT.copied;
         setTimeout(() => { copyButton.textContent = PROMPT.copy; }, 1500);
       } catch {
-        // Clipboard blocked: the text is selectable in the panel anyway.
         $('prompt-text').focus();
       }
     },
@@ -91,10 +78,23 @@ function mountPromptActions() {
   $('prompt-actions').replaceChildren(copyButton);
 }
 
+// ---------- the output panel ----------
+
+function renderOutput(run) {
+  const pre = $('output-text');
+  if (!run) {
+    pre.textContent = OUTPUT.empty;
+    pre.classList.add('muted');
+    return;
+  }
+  pre.textContent = run.output;
+  pre.classList.remove('muted');
+}
+
 // ---------- the draft (what is on the field) ----------
 
 const saveDraft = debounce(() => {
-  local.set(STORAGE_KEY_DRAFT, { brief: state.brief, prediction: state.prediction });
+  local.set(STORAGE_KEY_DRAFT, { brief: state.brief, prediction: state.prediction, currentRunId: state.currentRunId });
 }, 300);
 
 function loadDraft() {
@@ -102,6 +102,136 @@ function loadDraft() {
   if (!draft || typeof draft !== 'object') return;
   state.brief = copyBrief(draft.brief);
   state.prediction = String(draft.prediction || '');
+  if (typeof draft.currentRunId === 'string') state.currentRunId = draft.currentRunId;
+}
+
+// ---------- runs (flat list until the tree arrives in Phase 3) ----------
+
+function saveRuns() {
+  local.set(STORAGE_KEY_TREE, { version: EXPORT_FORMAT_VERSION, runs: state.runs });
+}
+
+function loadRuns() {
+  const saved = local.get(STORAGE_KEY_TREE, null);
+  if (saved && Array.isArray(saved.runs)) state.runs = saved.runs;
+  if (state.currentRunId && !state.runs.some((r) => r.id === state.currentRunId)) state.currentRunId = null;
+}
+
+function chipsFor(brief) {
+  return el('span', { class: 'chips', 'aria-hidden': 'true' },
+    ELEMENTS.map((e) => el('span', { class: isPlugged(brief, e.key) ? 'chip' : 'chip is-hollow' })));
+}
+
+function runLabel(run) {
+  const task = (run.brief.task && run.brief.task.text || '').split(/\r?\n/)[0].trim();
+  return task || TREE.fullBrief;
+}
+
+function timeOf(run) {
+  const d = new Date(run.createdAt);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderRuns() {
+  const host = $('tree-list');
+  if (state.runs.length === 0) {
+    host.replaceChildren(el('p', { class: 'muted', text: TREE.empty }));
+    return;
+  }
+  host.replaceChildren(
+    ...state.runs.map((run) => {
+      const isCurrent = run.id === state.currentRunId;
+      return el('button', {
+        type: 'button',
+        class: isCurrent ? 'tree-node is-current' : 'tree-node',
+        'aria-current': isCurrent ? 'true' : null,
+        onclick: () => loadRun(run),
+      }, [
+        el('span', { class: 'run-row-item' }, [
+          chipsFor(run.brief),
+          el('span', { class: 'run-label', text: runLabel(run) }),
+          el('span', { class: 'run-time', text: timeOf(run) }),
+        ]),
+      ]);
+    }),
+  );
+}
+
+// Put a run's brief back on the field and show its output. Editing then branches from it.
+function loadRun(run) {
+  state.brief = copyBrief(run.brief);
+  state.prediction = '';
+  state.currentRunId = run.id;
+  field.syncInputs();
+  renderOutput(run);
+  renderStatus($('output-status'), null);
+  saveDraft();
+  notify('runs');
+  notify('brief');
+}
+
+// ---------- Run ----------
+
+async function onRun() {
+  if (state.busy) return;
+  const prompt = assemble(state.brief);
+  if (!prompt) return;
+  const key = getKey();
+  const status = $('output-status');
+  if (!key) {
+    renderStatus(status, ERRORS.missingKey, {}, 'error');
+    return;
+  }
+
+  const settings = { ...state.settings };
+  const parentId = state.currentRunId;
+  const prediction = state.prediction;
+  const briefSnapshot = copyBrief(state.brief);
+  const started = Date.now();
+
+  state.busy = true;
+  notify('brief');
+  renderStatus(status, { title: fill(OUTPUT.progress, { provider: providerLabel(settings.provider) }) }, {}, 'info', true);
+
+  try {
+    const output = await callModel({
+      provider: settings.provider,
+      model: settings.model,
+      key,
+      temperature: settings.temperature,
+      maxOutputTokens: settings.maxOutputTokens,
+      prompt,
+      onProgress: (p) => {
+        if (p.phase === 'retry') {
+          const text = p.kind === 'providerBusy' ? OUTPUT.progressBusy : OUTPUT.progressRetry;
+          renderStatus(status, { title: fill(text, p) }, {}, 'warn', true);
+        } else if (p.attempt > 1) {
+          renderStatus(status, { title: fill(OUTPUT.progress, { provider: providerLabel(settings.provider) }) }, {}, 'info', true);
+        }
+      },
+    });
+    const run = makeRun({ parentId, brief: briefSnapshot, settings, prediction, output });
+    state.runs.push(run);
+    state.currentRunId = run.id;
+    state.prediction = '';
+    saveRuns();
+    renderOutput(run);
+    renderStatus(status, {
+      title: fill(OUTPUT.done, { provider: providerLabel(settings.provider), model: settings.model, seconds: ((Date.now() - started) / 1000).toFixed(1) }),
+    }, {}, 'info');
+  } catch (err) {
+    renderStatus(status, ...errorEntry(err), 'error');
+  } finally {
+    state.busy = false;
+    field.syncInputs();
+    saveDraft();
+    notify('runs');
+    notify('brief');
+  }
+}
+
+function providerLabel(provider) {
+  return provider === 'gemini' ? 'Gemini' : provider === 'openai' ? 'OpenAI' : provider;
 }
 
 // ---------- Load a task / Start blank ----------
@@ -119,6 +249,7 @@ async function loadWalkthroughTask() {
   state.brief = briefFromTask(task);
   state.prediction = '';
   field.syncInputs();
+  saveDraft();
   notify('brief');
 }
 
@@ -127,6 +258,7 @@ function startBlank() {
   state.prediction = '';
   field.syncInputs();
   field.focusFirstEmpty();
+  saveDraft();
   notify('brief');
 }
 
@@ -173,7 +305,7 @@ function mountMode() {
   setMode(local.get(STORAGE_KEY_MODE, 'free'));
 }
 
-// ---------- settings drawer (Phase 2 fills the body) ----------
+// ---------- settings drawer ----------
 
 function mountSettings() {
   const drawer = $('settings');
@@ -181,14 +313,14 @@ function mountSettings() {
   const open = (yes) => {
     show(drawer, yes);
     button.setAttribute('aria-expanded', yes ? 'true' : 'false');
-    if (yes) drawer.querySelector('button, input, select, textarea')?.focus();
+    if (yes) drawer.querySelector('input, select, button, textarea')?.focus();
     else button.focus();
   };
   button.addEventListener('click', () => open(drawer.hasAttribute('hidden')));
   $('settings-actions').replaceChildren(
     el('button', { type: 'button', class: 'button button-quiet button-small', text: SETTINGS.close, onclick: () => open(false) }),
   );
-  $('settings-body').replaceChildren(el('p', { class: 'muted', text: SETTINGS.comingLater }));
+  mountSettingsBody($('settings-body'));
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !drawer.hasAttribute('hidden')) open(false);
   });
@@ -207,30 +339,25 @@ function mountClearEverything() {
     state.currentRunId = null;
     field.syncInputs();
     renderStatus($('output-status'), null);
-    setText('output-text', OUTPUT.empty);
-    $('output-text').classList.add('muted');
+    renderOutput(null);
+    mountSettingsBody($('settings-body'));
     notify('runs');
     notify('brief');
   });
 }
 
-// ---------- run (Phase 2 replaces this with the provider call) ----------
-
-function onRun() {
-  renderStatus($('output-status'), ERRORS.missingKey, {}, 'error');
-}
-
 // ---------- start ----------
 
 renderShell();
+loadSettings();
 loadDraft();
+loadRuns();
 
 const field = mountField({
   host: $('field-nodes'),
-  onChange: (what) => {
+  onChange: () => {
     notify('brief');
-    if (what !== 'prediction') saveDraft();
-    else saveDraft();
+    saveDraft();
   },
   onRun,
 });
@@ -240,6 +367,7 @@ subscribe((topic) => {
     field.refresh();
     renderPrompt();
   }
+  if (topic === 'runs') renderRuns();
 });
 
 mountPromptActions();
@@ -249,6 +377,8 @@ mountSettings();
 mountClearEverything();
 field.syncInputs();
 renderPrompt();
+renderRuns();
+renderOutput(currentRun());
 
 if (!local.available()) {
   renderStatus($('output-status'), ERRORS.storageUnavailable, {}, 'warn');

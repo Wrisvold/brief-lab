@@ -2,6 +2,51 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## Phase 2 — The provider layer (done 2026-09-17)
+
+### Done
+- `js/provider.js`: direct browser calls to Gemini and OpenAI with the key in a request header (never a
+  URL). Pure, tested pieces: `buildRequest`, `parseResponse`, `classifyError`, `parseModelList`,
+  `providerMessage`. `callModel()` adds a timeout and the retry loop: on 429 or a 5xx it waits
+  2 / 5 / 10 / 20 s (from `constants.js`), reports a per-second countdown, and gives up after the last
+  wait with its own message. Invalid key, unknown model, and bad request never retry.
+  16 tests in `tests/provider.test.js` with a fake fetch; 44 tests pass in all.
+- Error set, each with title, plain message, and next step (`copy.js` ERRORS): missing key, invalid key
+  (401/403, and Gemini's 400 "API key not valid"), unknown model (404, with the provider's model-list
+  link), rate limit (with countdown and give-up text), no quota (OpenAI `insufficient_quota`), provider
+  busy (5xx), bad request (quotes the provider's one-sentence message, never JSON), network, empty
+  response, unexpected. `js/status.js` maps an error to its entry.
+- Settings drawer (`js/settings.js`): provider, API key (password field, Show/Hide, Forget key,
+  sessionStorage only), the key-entry copy with Get-a-key and model-list links, model name (editable)
+  with **List models** (fetches the provider's live list with the key and offers it as a pick-list),
+  temperature dial 0–1 with the "Higher = more variation" label, max output length, Test connection.
+  Settings (never the key) persist in `localStorage`; the last model used per provider is remembered.
+- Run: progress state from click to reply (moving bar, "Waiting for Gemini...", countdown on retry),
+  then a run node (`makeRun`) with `parentId` = the node loaded on the field, filed in `state.runs`,
+  saved to `localStorage`, and shown as a flat list in the Tree panel (chips, first line of Task,
+  time; click to load). Loading a run puts its brief on the field and turns on the "changed since
+  last run" line.
+- Checked in the browser against the real Gemini endpoint with a bogus key: CORS is fine, and List
+  models, Test connection, and Run each show the invalid-key message with no raw error text.
+  **Not yet checked with a valid key** (I have none); please run Test connection with yours.
+
+### Decisions made on my own (say if any is wrong)
+1. **Model-agnostic Settings.** Per your note, the model name field is free text and "List models"
+   pulls the current names from the provider. `constants.js` defaults are only what appears before a
+   student lists. Gemini list = models that support `generateContent`; OpenAI list = ids minus
+   embeddings, audio, image, moderation, and similar.
+2. **OpenAI request** uses `max_completion_tokens` (the current name; `max_tokens` is rejected by newer
+   models). If a model rejects `temperature`, the student sees "bad request" with the provider's
+   sentence and the suggestion to set temperature to 1.
+3. **5xx from the provider** is retried with the same backoff as 429, under its own message.
+4. **Test connection** sends the one-line prompt in `constants.js` with a 64-token cap.
+5. The browser's own console line for a failed HTTP request ("Failed to load resource: 400") cannot be
+   suppressed by page code; nothing the app itself logs.
+
+### Next
+- Phase 3: tree operations with tests, the tree drawer, load/branch/revert/new root, Run again and
+  same-brief labelling, Compare in the §4.6 order, diff and similarity modules, storage size guard.
+
 ## Phase 1 — The field (done 2026-09-17)
 
 ### Done

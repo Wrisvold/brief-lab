@@ -33,7 +33,12 @@ brief-lab/
     copy.js           every word a student can read
     model.js          the seven elements, the brief, the assembler, run snapshots
     main.js           entry point
-    (more modules arrive in later phases: field, provider, tree, diff, similarity, blind, walkthrough, export)
+    provider.js       calls Gemini / OpenAI from the browser; retries, timeouts, typed errors
+    settings.js       the Settings drawer (key in sessionStorage, model list, temperature)
+    status.js         renders plain-language status and error blocks
+    field.js          the seven nodes, wires, and the Brief node
+    dom.js, storage.js, state.js   small helpers
+    (later phases add: tree, diff, similarity, blind, walkthrough, export)
   data/
     walkthrough.json           the built-in sample task
     walkthrough-recorded.json  recorded walkthrough runs (Phase 5; you generate this from the app)
@@ -59,9 +64,10 @@ phrase "prompt engineering," and that every explainer paragraph is under 70 word
 Open `js/constants.js`. Every value has a plain-language comment above it. The ones you are most
 likely to touch:
 
-- `PROVIDERS.gemini.defaultModel` and `PROVIDERS.openai.defaultModel`: the model name each provider
-  is called with. When a provider retires a name, change it here. Students can also change it in
-  Settings without editing anything.
+- `PROVIDERS.gemini.defaultModel` and `PROVIDERS.openai.defaultModel`: the model name shown before a
+  student picks one. Model names change often, so the Settings drawer has a **List models** button
+  that asks the provider for the current names with the student's key; the name field is also free
+  text. Change the defaults here when a name is retired, but nothing breaks if you do not.
 - `DEFAULT_TEMPERATURE`, `TEMPERATURE_MIN`, `TEMPERATURE_MAX`: the temperature dial.
 - `BLIND_NO_DIFFERENCE_THRESHOLD`: the similarity above which a blind round reports
   "no visible difference" instead of a hit or a miss.
