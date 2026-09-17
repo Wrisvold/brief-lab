@@ -72,6 +72,8 @@ export function mountSettingsBody(body) {
   const getKeyLink = el('a', { target: '_blank', rel: 'noopener', text: SETTINGS.keyEntry.getKeyLink });
   const modelListLink = el('a', { target: '_blank', rel: 'noopener', text: SETTINGS.keyEntry.modelListLink });
   const whereLine = el('p');
+  // Shown for the paid providers: points a student with no budget at Gemini's free key.
+  const noBudgetLine = el('p', { text: SETTINGS.keyEntry.noBudget, hidden: true });
 
   // Model
   const modelInput = el('input', { id: 'set-model', type: 'text', autocomplete: 'off', spellcheck: 'false' });
@@ -103,6 +105,7 @@ export function mountSettingsBody(body) {
       openai: SETTINGS.keyEntry.whereOpenAI,
       anthropic: SETTINGS.keyEntry.whereAnthropic,
     }[state.settings.provider] || '';
+    show(noBudgetLine, state.settings.provider !== 'gemini');
     keyNote.textContent = getKey() ? SETTINGS.keyKept : SETTINGS.keyNone;
   }
 
@@ -221,6 +224,7 @@ export function mountSettingsBody(body) {
     el('div', { class: 'settings-copy' }, [
       el('p', { text: SETTINGS.keyEntry.whatIsAKey }),
       whereLine,
+      noBudgetLine,
       el('p', {}, [getKeyLink, modelListLink]),
       el('p', { text: SETTINGS.keyEntry.stays }),
       el('p', { text: SETTINGS.keyEntry.training }),

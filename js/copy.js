@@ -99,6 +99,7 @@ export const SETTINGS = {
     whereAnthropic: 'Claude: sign in at console.anthropic.com and create a key under API Keys. Claude keys need a small prepaid balance; Haiku is the inexpensive model.',
     stays: 'Your key stays in this browser tab and goes only to the provider you chose. It is not logged, saved to disk, or sent anywhere else. Closing the tab forgets it.',
     training: 'Free-tier providers may use what you send to improve their models. Do not paste confidential material, client data, or anything you would not put in a public document.',
+    noBudget: 'No budget for a key? Switch the provider above to Gemini. Its free key is enough for this course.',
     getKeyLink: 'Get a key',
     modelListLink: 'Current model names',
   },
