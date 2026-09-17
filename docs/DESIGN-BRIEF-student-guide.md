@@ -37,14 +37,15 @@ and asks the student to name it from the output alone.
 Criteria, Steps. The guide must use these names, in this order, and nothing else. The Rules element
 has three parts: Do, Don't (negative space), and Fallback (what to say when the task cannot be done).
 
-**The confusion this guide must remove.** The app's guided walkthrough has **eight stops, numbered
-0 to 7**. Students see "0 · Task only" through "7 · Run again" and expect the numbers to match the
-seven elements. They do not:
+**The confusion this guide must remove.** The app's guided walkthrough has **eight stops** for
+**seven elements**. The stop chips are named for what they add ("Task only", "+ Context", ...,
+"Run again") and carry no numbers, but students still expect one stop per element. The count does
+not match, on purpose:
 
 - The walkthrough adds elements **in the order their effect is easiest to see** on the sample task,
-  not in the framework order. So stop 1 adds Context, not Persona.
-- Stop 0 is the bare Task alone, and stop 7 does not add anything: it runs the full brief a second
-  time to show how much two identical runs differ (the "noise floor").
+  not in the framework order. So the second stop adds Context, not Persona.
+- The first stop is the bare Task alone, and the last stop does not add anything: it runs the full
+  brief a second time to show how much two identical runs differ (the "noise floor").
 - The field on screen always shows the elements in **framework** order (Persona first), whatever
   the stepper is doing.
 
@@ -74,9 +75,9 @@ app shows them, the element it adds, and the chips filling up. For example the f
 
 | Stop as shown in the app | What it adds | Elements plugged after this stop |
 |---|---|---|
-| 0 · Task only | Task | Task |
-| 1 · + Context | Context | Task, Context |
-| 2 · + Rules | Rules (Do, Don't, Fallback) | Task, Context, Rules |
+| Task only | Task | Task |
+| + Context | Context | Task, Context |
+| + Rules | Rules (Do, Don't, Fallback) | Task, Context, Rules |
 
 **Good explainer copy** (this is the app's own register; match it):
 
@@ -193,14 +194,14 @@ The key is kept only for the browser tab and is forgotten when the tab closes.
 
 | Stop as shown in the app | What it adds | Elements plugged after this stop |
 |---|---|---|
-| 0 · Task only | Task | Task |
-| 1 · + Context | Context | Task, Context |
-| 2 · + Rules | Rules (Do, Don't, Fallback) | Task, Context, Rules |
-| 3 · + Criteria | Criteria (and the checklist appears) | Task, Context, Rules, Criteria |
-| 4 · + Persona | Persona | Persona, Task, Context, Rules, Criteria |
-| 5 · + Examples | Examples | Persona, Task, Context, Examples, Rules, Criteria |
-| 6 · + Steps | Steps | all seven |
-| 7 · Run again | nothing; the full brief runs a second time | all seven |
+| Task only | Task | Task |
+| + Context | Context | Task, Context |
+| + Rules | Rules (Do, Don't, Fallback) | Task, Context, Rules |
+| + Criteria | Criteria (and the checklist appears) | Task, Context, Rules, Criteria |
+| + Persona | Persona | Persona, Task, Context, Rules, Criteria |
+| + Examples | Examples | Persona, Task, Context, Examples, Rules, Criteria |
+| + Steps | Steps | all seven |
+| Run again | nothing; the full brief runs a second time | all seven |
 
 Why this order: it is the order in which each element's effect is easiest to see on the sample task.
 The field always shows the elements in framework order regardless.
@@ -209,11 +210,11 @@ At each stop the student sees: a short paragraph about the element, the element'
 in from the sample task, and the buttons **Run this stop** (live, with a key) or **Replay the recorded
 run** (no key needed, output labelled "Recorded run · model · date — not live"). After the run: a
 "what changed" note, **Open Compare**, **Replay live with my key** (for recorded stops), and
-**Next stop**. At stop 7: **Finish**, which switches the mode to Free and leaves the field and tree
-as they are. **Start over** goes back to stop 0 and deletes nothing.
+**Next stop**. At the last stop: **Finish**, which switches the mode to Free and leaves the field and
+tree as they are. **Start over** goes back to the first stop and deletes nothing.
 
 Entering any stop puts that stop's elements on the field; the others are empty. This is why the Task
-box is already filled at stop 0.
+box is already filled at the first stop.
 
 The walkthrough builds a real lineage in the tree: A1 through A7 in a chain, with A8 beside A7 as
 "same brief".

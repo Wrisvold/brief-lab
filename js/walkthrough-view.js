@@ -164,7 +164,7 @@ export function mountWalkthrough({ host, hasKey, loadBriefWithParent, runLive, f
           class: `stepper-stop${i === current && progress.started ? ' is-current' : ''}${done ? ' is-done' : ''}`,
           'aria-current': i === current && progress.started ? 'step' : null,
           disabled: !reachable || busy,
-          text: `${i} · ${s.title}${done ? ' ✓' : ''}`,
+          text: `${s.title}${done ? ' ✓' : ''}`,
           onclick: () => enterStop(i),
         }),
       ]);
@@ -180,7 +180,7 @@ export function mountWalkthrough({ host, hasKey, loadBriefWithParent, runLive, f
     } else {
       const s = stops[current];
       const run = runForStop(current);
-      copyCol.append(el('h3', { text: `${fill(WALKTHROUGH.stopLabel, { n: current })} · ${s.title}` }), el('p', { text: s.copy }));
+      copyCol.append(el('h3', { text: s.title }), el('p', { text: s.copy }));
       if (run) {
         copyCol.append(el('p', { class: 'stepper-after', text: s.after }));
         if (run.recorded) copyCol.append(el('p', { class: 'small muted', text: WALKTHROUGH.recordedNotice }));

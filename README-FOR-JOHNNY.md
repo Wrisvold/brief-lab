@@ -56,21 +56,21 @@ This is the most important step. It produces the file that lets students without
 walkthrough.
 
 1. Make sure the mode indicator at the top says **Walkthrough** (click it if it says Free).
-2. Press **Start the walkthrough**. Stop 0 loads a task with only the Task element filled.
+2. Press **Start the walkthrough**. The first stop, **Task only**, loads a task with only the Task element filled.
 3. Press **Run this stop**. Wait for the output to appear on the right (usually 5 to 20 seconds).
    If the app says the provider asked it to slow down, just wait; it retries on its own with a
    countdown.
-4. Read the short "what changed" note, press **Open Compare** if you are curious (stop 0 has nothing
+4. Read the short "what changed" note, press **Open Compare** if you are curious (the first stop has nothing
    to compare against yet), then press **Next stop**.
-5. Repeat for every stop through stop 6. Each stop adds one element and runs again. If you like,
+5. Repeat for every stop through **+ Steps**. Each stop adds one element and runs again. If you like,
    type a sentence in the "Before you run" box before each run; those predictions are saved too.
-6. Stop 7 says **Run again**. Press **Run this stop**. This runs the same full brief a second time.
+6. The last stop is **Run again**. Press **Run this stop**. This runs the same full brief a second time.
    Press **Open Compare** and look for the "Noise floor" section: it should say the two runs differed
    by about some percentage.
-7. Still on stop 7, press **Save these runs as the recorded walkthrough (instructor)**. Your browser
+7. Still on that last stop, press **Save these runs as the recorded walkthrough (instructor)**. Your browser
    downloads a file named `walkthrough-recorded.json`. If the button is greyed out, one of the eight
    stops did not get a live run; click that stop's chip in the stepper and run it, then return to
-   stop 7.
+   the last stop.
 8. Send `walkthrough-recorded.json` to Ward, or, if you are comfortable with GitHub, replace
    `data/walkthrough-recorded.json` in the repository with it.
 9. Press **Finish**. The mode switches to Free and the runs stay in the tree on the right.
@@ -94,8 +94,8 @@ Each of these should take a minute or two.
    three results: identified, missed, or "made no visible difference". The Compare panel opens with
    the dropped element outlined in gold. Then press **Calibration record** in the tree header and
    check the table shows one row.
-4. **Criteria checklist.** Load a node whose brief includes Criteria (any walkthrough node from stop 3
-   on). Under the output, tick a few checkboxes. Open Compare on that node; the output section should
+4. **Criteria checklist.** Load a node whose brief includes Criteria (any walkthrough node from the
+   **+ Criteria** stop on). Under the output, tick a few checkboxes. Open Compare on that node; the output section should
    say "Criteria checks on ...: N of M met".
 5. **New root.** Press **New root** in the tree header. The field clears; the old runs stay. Type a
    Task and press Run. A "Root B" group appears below Root A.

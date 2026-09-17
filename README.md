@@ -111,7 +111,7 @@ The stepper adds elements in the order their effect is easiest to see on the sam
 Context, Rules, Criteria, Persona, Examples, Steps), then runs the full brief again for the noise
 floor. The field still shows elements in framework order. The order comes from `stopOrder` in
 `data/walkthrough.json`; the stop copy is `WALKTHROUGH.stops` in `js/copy.js`. Progress is kept in
-the browser so a reload resumes the same stop; "Start over" restarts from stop 0 and keeps the runs
+the browser so a reload resumes the same stop; "Start over" restarts from the first stop and keeps the runs
 already in the tree. The first visit opens in Walkthrough mode; finishing switches to Free.
 
 ## Recording the walkthrough runs
@@ -121,9 +121,9 @@ Students who have no key yet can replay a recorded walkthrough. The app ships wi
 no replay. Record it with the app itself; do not write outputs by hand.
 
 1. Open the app, put your key in Settings, and switch the mode indicator to **Walkthrough**.
-2. Press **Start the walkthrough** and go through all eight stops with **Run this stop** (stop 7 is
+2. Press **Start the walkthrough** and go through all eight stops with **Run this stop** (the last stop is
    Run again). Fill the Prediction box if you want your predictions shown to students.
-3. At stop 7, press **Save these runs as the recorded walkthrough (instructor)**. The browser downloads
+3. At the last stop, **Run again**, press **Save these runs as the recorded walkthrough (instructor)**. The browser downloads
    `walkthrough-recorded.json`, built from the eight live runs of this walkthrough (provider, model,
    date, temperature, and each stop's output).
 4. Replace `data/walkthrough-recorded.json` in the hosted folder with the download.
