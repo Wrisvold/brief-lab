@@ -16,7 +16,7 @@ export const APP = {
   tagline: 'Build a seven-element brief. Run it. Read the output for the fingerprint of each element.',
   course: 'AIST 6300 · Human/AI Communications · Georgia College & State University',
   modeLabel: 'Mode',
-  modes: { walkthrough: 'Walkthrough', free: 'Free' },
+  modes: { walkthrough: 'Walkthrough', free: 'Free form' },
   settings: 'Settings',
   whatIsHappening: 'What is happening here',
 };
@@ -367,7 +367,7 @@ export const WALKTHROUGH = {
   saveRecording: 'Save these runs as the recorded walkthrough (instructor)',
   saveRecordingHint: 'Downloads walkthrough-recorded.json built from the eight live runs of this walkthrough. Replace the file in the data folder with it.',
   needsAllLive: 'The recording can be saved once all eight stops have live runs.',
-  end: 'The walkthrough is over. The field and the tree are yours; keep going in Free mode.',
+  end: 'The walkthrough is over. The field and the tree are yours; keep going in Free form.',
   stops: [
     {
       title: 'Task only',
@@ -447,11 +447,12 @@ export const GUIDE = {
           ['Run again', 'Nothing new: the full brief runs a second time to show the noise floor'],
         ],
       },
-      after: 'Finish switches you to Free mode and leaves the field and tree as they are. Start over goes back to the first stop and deletes nothing.',
+      after: 'Finish switches you to Free form and leaves the field and tree as they are. Start over goes back to the first stop and deletes nothing.',
     },
     {
       title: 'On your own',
       paragraphs: [
+        'Free form is where you test your own briefs. Switch the mode at the top to Free form, press Load a task, then Start blank, and the seven boxes are yours. The walkthrough runs stay in the tree; your new work starts a fresh root beside them.',
         'Change one element and compare. Edit or unplug an element on the field (the Plugged switch turns it off without erasing it), press Run, then press Compare on the new node in the tree. The panel shows what changed in the brief, then what changed in the output.',
         'Run again. With a node loaded and the field unchanged, press Run again. Two runs of the identical brief will differ a little; that difference is the noise floor. A change smaller than it may be chance.',
         'Run blind. With three or more elements plugged, press Run blind. One element is dropped and hidden. Read the output, name the missing element, pick a confidence, file your call, then reveal. "No visible difference" is a finding, not a mistake.',

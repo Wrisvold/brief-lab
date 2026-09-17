@@ -176,7 +176,8 @@ Three regions, left to right:
   **Copy lineage summary**, **New root**, **Compare**, **Calibration record**. Each row has its own
   **Compare** button.
 
-Across the top: the title, a **Mode** switch (**Walkthrough** / **Free**), and **Settings**. Above
+Across the top: the title, a **Mode** switch (**Walkthrough** / **Free form**), **How to use this**,
+and **Settings**. Free form is where students work on their own briefs. Above
 the field in Walkthrough mode: the stepper. At the bottom: **Clear everything**.
 
 Every region has a collapsible **What is happening here** panel with two short paragraphs.
@@ -212,7 +213,7 @@ At each stop the student sees: a short paragraph about the element, the element'
 in from the sample task, and the buttons **Run this stop** (live, with a key) or **Replay the recorded
 run** (no key needed, output labelled "Recorded run · model · date — not live"). After the run: a
 "what changed" note, **Open Compare**, **Replay live with my key** (for recorded stops), and
-**Next stop**. At the last stop: **Finish**, which switches the mode to Free and leaves the field and
+**Next stop**. At the last stop: **Finish**, which switches the mode to Free form and leaves the field and
 tree as they are. **Start over** goes back to the first stop and deletes nothing.
 
 Entering any stop puts that stop's elements on the field; the others are empty. This is why the Task

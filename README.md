@@ -125,7 +125,8 @@ Context, Rules, Criteria, Persona, Examples, Steps), then runs the full brief ag
 floor. The field still shows elements in framework order. The order comes from `stopOrder` in
 `data/walkthrough.json`; the stop copy is `WALKTHROUGH.stops` in `js/copy.js`. Progress is kept in
 the browser so a reload resumes the same stop; "Start over" restarts from the first stop and keeps the runs
-already in the tree. The first visit opens in Walkthrough mode; finishing switches to Free.
+already in the tree. The first visit opens in Walkthrough mode; finishing switches to Free form,
+where students work on their own briefs.
 
 ## Recording the walkthrough runs
 
