@@ -46,8 +46,12 @@ written to `localStorage`, exports, or the summary, never appears in a URL, is n
 sent only as a request header to the two hard-coded provider endpoints. Johnny's branch made no
 changes there and none were needed.
 
-Still outstanding from Johnny's checklist: the recorded walkthrough file (`data/walkthrough-recorded.json`
-is still the empty placeholder), a live run with a real key, and the Firefox / Safari check.
+Since then: Ward ran the app live with a real Gemini key (List models, Test connection, runs, and the
+student features all worked), and the Firefox / Safari / Edge engines were checked by script (see
+above). The one item still open is the recorded walkthrough file: `data/walkthrough-recorded.json`
+is still the empty placeholder until Ward runs all eight stops and presses the instructor save button
+(steps in README, "Recording the walkthrough runs"). The separate checklist for John was removed on
+2026-09-17 because nothing left on it needs a second person.
 
 ## Phase 6 — Export and polish (done 2026-09-17)
 
