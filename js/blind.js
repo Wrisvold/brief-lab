@@ -25,6 +25,9 @@ export function chooseDrop(brief, random = Math.random) {
   return candidates[i];
 }
 
+// Extension point (deferred, brief section 9): weakened-element rounds. A variant of
+// dropElement would swap the element's text for a vaguer version instead of unplugging it;
+// the run's blind record would then carry { droppedElement, weakened: true }.
 // A copy of the brief with one element unplugged (text kept).
 export function dropElement(brief, key) {
   const out = copyBrief(brief);

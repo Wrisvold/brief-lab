@@ -98,6 +98,17 @@
     </div>
   </section>
 
+  <!-- Plain-text panel: shows the lineage summary when the clipboard is unavailable. -->
+  <section id="text-panel" class="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="text-panel-title" hidden>
+    <div class="panel-inner panel-narrow">
+      <div class="region-head">
+        <h2 id="text-panel-title"></h2>
+        <div class="region-actions" id="text-panel-actions"></div>
+      </div>
+      <textarea id="text-panel-text" class="mono text-panel-text" readonly rows="18"></textarea>
+    </div>
+  </section>
+
   <!-- Settings drawer. -->
   <aside id="settings" class="drawer-settings" role="dialog" aria-labelledby="settings-title" hidden>
     <div class="region-head">

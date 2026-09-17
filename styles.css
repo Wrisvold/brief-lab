@@ -872,3 +872,14 @@ a { color: var(--evergreen); }
 .calibration-table th, .calibration-table td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; }
 .calibration-table th { font-family: var(--serif); color: var(--evergreen); font-weight: 600; }
 .calibration-table td.num, .calibration-table th.num { text-align: right; font-family: var(--mono); font-size: 13px; }
+
+/* ---------- Plain-text panel ---------- */
+
+.text-panel-text {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  background: var(--paper);
+  color: var(--ink);
+}

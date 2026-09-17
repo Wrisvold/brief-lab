@@ -2,6 +2,70 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## Phase 6 — Export and polish (done 2026-09-17)
+
+### Done
+- **Export tree / Import tree** in the tree drawer. Export downloads `brief-lab-tree-YYYY-MM-DD.json`
+  (every run, hidden blind rounds included). Import reads a file, validates it, asks before replacing
+  a non-empty tree, restores the current node (masked if it was a hidden blind run), and reports the
+  count. The exact round trip is tested on a fixture (`tests/tree.test.js`) and the manual check is
+  documented in README.
+- **Copy lineage summary** (`js/summary.js`, pure, 4 tests pinned to a fixed fixture in
+  `tests/fixtures/summary-fixture.js`): header with date and settings, roots with the first Task line,
+  per node the code, seven chips in framework order (▒ for a hidden blind brief), the computed label,
+  word count, similarity to parent (or to the run-again sibling), settings that differ from the header,
+  notes, predictions, blind rounds with the call and outcome, criteria checks, and totals. Copies to the
+  clipboard; if the clipboard is blocked (as in some embedded browsers) the text opens in a panel,
+  selected. The summary is unchanged by an export/import round trip (tested).
+- Explainer and UI copy pass: two unused strings removed; all paragraphs under 70 words, no banned
+  words, no "prompt engineering" (`tests/copy.test.js`). 82 tests pass.
+- Accessibility: overlays return focus to the control that opened them; chip groups carry the plugged
+  list as an accessible label; every control is a real button, select, or input; Escape closes every
+  overlay; `:focus-visible` outline on everything; unplugged nodes use a dashed border plus a text
+  label, never color alone; gold appears only as a border or background.
+  Contrast (WCAG AA, computed): evergreen on white 7.5:1, ink-soft on ice 5.3:1, diff blue on its
+  tint 5.6:1, diff red on its tint 4.9:1.
+- Extension-point comments for the deferred items (brief §9) in `field.js` (element libraries),
+  `blind.js` (weakened-element rounds), `tree.js` (import brief (blind), named trees), `provider.js`
+  (two providers side by side, multi-turn).
+- README rewritten for hosting, defaults, copy, the sample task, the walkthrough, recording, export /
+  import / summary, clearing storage, and known limitations.
+
+### Success criteria (brief §7), as of this build
+1. Field with seven nodes, no console errors, no key: **yes** (checked in the in-app Chromium browser).
+2. Walkthrough end to end on recorded runs, eight nodes in lineage, every output labelled: **yes**
+   (checked with a temporary recording; the shipped file is the empty placeholder until Ward records).
+3. Test connection and full-brief Run with a valid Gemini key; prompt matches the fixture: **prompt
+   format tested; live call not yet checked** (no key in this session).
+4. Unplug + run → child; Compare in order: brief diff, output diff, noise-floor note or offer: **yes**.
+5. Run again → same-brief sibling; noise-floor percentage: **yes** (seeded pair).
+6. Blind on a four-element brief; three outcomes; no-visible-difference regardless of call; Task never
+   dropped: **yes** (tests + seeded browser check).
+7. New root creates a second group without deleting the first: **yes**.
+8. 404 / 429 / missing key each with their own plain message; 429 countdown and retries: **messages
+   and retry loop tested with a fake network; invalid key checked live against Gemini; 404 and 429
+   not yet seen live**.
+9. Export → clear → import restores exactly: **tested on a fixture; manual check documented**.
+10. Copy lineage summary produces the §4.10 content set: **yes** (pinned test).
+11. `node --test` passes: **yes, 82 tests**.
+12. Copy rules: **yes** (tested).
+13. Model name and blind threshold editable on one commented line: **yes** (`constants.js`).
+
+### Not checked by me
+- Firefox and Safari. Everything used (ES modules, `inert`, `ResizeObserver`, `<details>`,
+  `:focus-visible`, `structuredClone`-free code) is supported in current versions, but I only had a
+  Chromium-based browser here. Please open it once in each.
+- Any successful provider call, the model list with a real key, the recording download, and the
+  Export / Import file dialogs (the embedded browser cannot drive file pickers).
+
+### Decisions made on my own (say if any is wrong)
+1. **Import replaces** the working tree rather than merging, since the brief describes one working
+   tree plus export/import. Merging would need id conflict rules; named trees are deferred.
+2. **The summary header** uses the settings of the most recent live run (or the current settings when
+   there are no runs); nodes whose settings differ get a short suffix such as "(temp 0.2)".
+3. **Summary similarity for a run-again sibling** is the mean pairwise similarity of its same-brief
+   group, shown "to" the node it was run again from.
+
 ## Phase 5 — The walkthrough (done 2026-09-17)
 
 ### Done

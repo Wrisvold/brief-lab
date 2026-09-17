@@ -27,6 +27,7 @@ import { chooseDrop, dropElement } from './blind.js';
 import { mountBlind } from './blind-view.js';
 import { mountCalibration } from './calibration-view.js';
 import { mountWalkthrough } from './walkthrough-view.js';
+import { formatSummary } from './summary.js';
 
 // ---------- shell ----------
 
@@ -433,9 +434,107 @@ function mountFieldActions() {
 
 // ---------- tree drawer ----------
 
+// ---------- export, import, lineage summary ----------
+
+function downloadJson(obj, filename) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = el('a', { href: url, download: filename });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportTree() {
+  const stampText = new Date().toISOString().slice(0, 10);
+  downloadJson(serialize(state.runs, state.currentRunId), `brief-lab-tree-${stampText}.json`);
+}
+
+function importTree() {
+  const input = el('input', { type: 'file', accept: '.json,application/json', hidden: true });
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    input.remove();
+    if (!file) return;
+    let parsed;
+    try {
+      parsed = deserialize(JSON.parse(await file.text()));
+    } catch {
+      renderStorageWarning(TREE.importFailed);
+      return;
+    }
+    if (state.runs.length > 0 && !window.confirm(TREE.importConfirm)) return;
+    state.runs = parsed.runs;
+    state.currentRunId = parsed.currentRunId;
+    state.masked = isHidden(currentRun());
+    const cur = currentRun();
+    if (cur) {
+      const parent = parentOf(state.runs, cur);
+      state.brief = copyBrief(state.masked && parent ? parent.brief : cur.brief);
+    }
+    state.prediction = '';
+    saveRuns();
+    field.syncInputs();
+    renderOutput(cur);
+    renderStatus($('output-status'), { title: fill(TREE.importDone, { n: state.runs.length }) }, {}, 'info');
+    saveDraft();
+    notify('runs');
+    notify('brief');
+  });
+  document.body.appendChild(input);
+  input.click();
+}
+
+function showTextPanel(title, text, note) {
+  const panel = $('text-panel');
+  setText('text-panel-title', title);
+  const area = $('text-panel-text');
+  area.value = text;
+  $('text-panel-actions').replaceChildren(
+    note ? el('span', { class: 'small muted', text: note }) : null,
+    el('button', { type: 'button', class: 'button button-quiet button-small', text: TREE.close, onclick: () => show(panel, false) }),
+  );
+  show(panel, true);
+  area.focus();
+  area.select();
+}
+
+async function copySummary() {
+  const text = formatSummary({ runs: state.runs, now: new Date(), settings: state.settings });
+  try {
+    await navigator.clipboard.writeText(text);
+    renderStatus($('output-status'), { title: TREE.summaryCopied }, {}, 'info');
+  } catch {
+    showTextPanel(TREE.summaryTitle, text, TREE.summaryShown);
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  const panel = $('text-panel');
+  if (e.key === 'Escape' && panel && !panel.hasAttribute('hidden')) show(panel, false);
+});
+
 function mountTreeActions() {
   const midRound = isHidden(currentRun());
   $('tree-actions').replaceChildren(
+    el('button', {
+      type: 'button',
+      class: 'button button-quiet button-small',
+      text: TREE.exportTree,
+      title: TREE.exportHint,
+      disabled: state.runs.length === 0,
+      onclick: exportTree,
+    }),
+    el('button', { type: 'button', class: 'button button-quiet button-small', text: TREE.importTree, onclick: importTree }),
+    el('button', {
+      type: 'button',
+      class: 'button button-quiet button-small',
+      text: TREE.copySummary,
+      title: TREE.summaryHint,
+      disabled: state.runs.length === 0,
+      onclick: copySummary,
+    }),
     el('button', {
       type: 'button',
       class: 'button button-secondary button-small',

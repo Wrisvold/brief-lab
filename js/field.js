@@ -11,6 +11,9 @@ import { canRunBlind } from './blind.js';
 import { el, svgEl, show } from './dom.js';
 import { state, fieldChangedSinceRun, currentRun } from './state.js';
 
+// Extension point (deferred, brief section 9): element libraries. A "save this Persona /
+// Rules set for reuse" control would attach to each node's head here and store named
+// slots in localStorage; loading one would set state.brief[key] and call onChange.
 export function mountField({ host, onChange, onRun }) {
   const views = new Map();
 

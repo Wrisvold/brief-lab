@@ -35,10 +35,14 @@ function baseLabel(runs, run) {
   }
 }
 
+// Seven chips in framework order. Screen readers get the plugged list as text.
 export function chipsFor(brief, hidden = false) {
-  return el('span', { class: 'chips', 'aria-hidden': 'true' },
+  const plugged = ELEMENTS.filter((e) => isPlugged(brief, e.key)).map((e) => e.name);
+  const label = hidden ? TREE.blindUnrevealed : (plugged.length ? `${FIELD_PLUGGED_WORD}: ${plugged.join(', ')}` : '');
+  return el('span', { class: 'chips', role: 'img', 'aria-label': label },
     ELEMENTS.map((e) => el('span', { class: hidden ? 'chip is-hidden' : isPlugged(brief, e.key) ? 'chip' : 'chip is-hollow' })));
 }
+const FIELD_PLUGGED_WORD = 'Plugged';
 
 export function timeOf(run) {
   const d = new Date(run.createdAt);

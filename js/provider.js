@@ -203,6 +203,11 @@ async function fetchJson({ url, headers, body, method = 'POST', fetchImpl, timeo
   }
 }
 
+// Extension points (deferred, brief section 9):
+//  - Two providers side by side: call callModel() twice with different provider settings
+//    and file the two runs as same-parent siblings; Compare already handles a settings diff.
+//  - Multi-turn: buildRequest() takes one prompt on purpose. Brief Lab is single-turn by design;
+//    a conversation instrument would need a messages array here and would be its own app.
 // Send one prompt. Retries on rate limit and provider trouble with backoff, reporting
 // progress through onProgress({ phase, attempt, total, seconds, provider }).
 // Resolves to the reply text; rejects with a ProviderError.

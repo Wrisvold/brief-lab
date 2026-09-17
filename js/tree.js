@@ -163,6 +163,12 @@ export function sameBriefGroup(runs, run) {
 }
 
 // ---------- export / import ----------
+// Extension points (deferred, brief section 9):
+//  - Import brief (blind): a "sealed brief" export would carry one run with element text
+//    obfuscated and one element pre-dropped; `format` would be 'brief-lab-sealed-brief' and
+//    deserialize() would file it as a hidden blind node. The format tag keeps the two apart.
+//  - Named trees / multiple projects: serialize() already takes an `extra` object; a name
+//    and a storage key per tree would let several trees live side by side in localStorage.
 
 export function serialize(runs, currentRunId = null, extra = {}) {
   return {

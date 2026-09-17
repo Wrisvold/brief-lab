@@ -217,16 +217,23 @@ export function mountCompare({ panel, body, actions, onRunAgain, onClose }) {
     );
   }
 
+  let opener = null;
+
   function open(left, right) {
     leftId = left ? left.id : null;
     rightId = right ? right.id : null;
+    opener = document.activeElement;
     render();
     show(panel, true);
     panel.querySelector('button, select')?.focus();
   }
 
   function close() {
+    if (panel.hasAttribute('hidden')) return;
     show(panel, false);
+    // Return focus to where the student was (keyboard users lose their place otherwise).
+    if (opener && typeof opener.focus === 'function' && document.contains(opener)) opener.focus();
+    opener = null;
     if (onClose) onClose();
   }
 

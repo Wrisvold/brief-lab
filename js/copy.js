@@ -92,7 +92,6 @@ export const SETTINGS = {
   listed: '{count} models are available to this key. Pick one or type a name.',
   modelPick: 'Available models',
   maxOutputHint: 'Roughly three quarters of a word per token.',
-  testResult: 'Connection',
   keyEntry: {
     whatIsAKey: 'An API key is a long string of letters and numbers that lets this page call a model on your behalf. It is not the same as a chat subscription: a ChatGPT or Gemini subscription is not an API key. You need a key from the provider\'s developer site.',
     whereGemini: 'Gemini: sign in at Google AI Studio and choose Get API key. The free tier is enough for this course.',
@@ -251,6 +250,15 @@ export const TREE = {
   noteHint: 'A short note on the current node, for your own records.',
   storageFailed: 'The browser refused to save the tree. Export it now so nothing is lost.',
   runAgainHint: 'Same brief, same settings: a sibling for the noise floor.',
+  exportHint: 'Downloads every run, including hidden blind rounds, as one file the app can import exactly.',
+  importConfirm: 'Replace the current tree with the imported one? Export first if you want a copy of what is here.',
+  importDone: 'Imported {n} runs.',
+  importFailed: 'That file is not a Brief Lab tree.',
+  summaryTitle: 'Lineage summary',
+  summaryHint: 'A plain-text block for pasting into an assignment.',
+  summaryCopied: 'Lineage summary copied.',
+  summaryShown: 'Copy the text below.',
+  close: 'Close',
 };
 
 // The Compare panel.
