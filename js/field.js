@@ -163,16 +163,17 @@ export function mountField({ host, onChange, onRun }) {
   function drawWires() {
     const hostRect = host.getBoundingClientRect();
     if (hostRect.width === 0) return;
-    wires.setAttribute('width', hostRect.width);
+    const aRect = assemblerRoot.getBoundingClientRect();
+    const aX = aRect.right - hostRect.left;
+    const viewBoxWidth = Math.max(hostRect.width, aX + 10);
+    wires.setAttribute('width', viewBoxWidth);
     wires.setAttribute('height', host.scrollHeight);
-    wires.setAttribute('viewBox', `0 0 ${hostRect.width} ${host.scrollHeight}`);
+    wires.setAttribute('viewBox', `0 0 ${viewBoxWidth} ${host.scrollHeight}`);
     wires.replaceChildren();
 
     const trunkX = hostRect.width - 12;
     const socketY = (rect) => rect.top - hostRect.top + 22;
-    const aRect = assemblerRoot.getBoundingClientRect();
     const aY = socketY(aRect);
-    const aX = aRect.right - hostRect.left;
 
     let topY = aY;
     for (const view of views.values()) {
