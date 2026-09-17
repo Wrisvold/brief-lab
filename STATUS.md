@@ -2,6 +2,60 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## Phase 3 — The tree and Compare (done 2026-09-17)
+
+### Done
+- `js/tree.js` (pure, 9 tests): filing a run as a child, a fresh root, or a same-brief sibling; root
+  groups side by side with letters (A, B, ...) and node codes (A3); nested tree building; computed
+  labels (full brief / same brief / – Context, + Steps, edited Rules / same as parent / blind);
+  same-brief groups for the noise floor (identical assembled brief and identical provider, model,
+  temperature); export `serialize()` and import `deserialize()` with an exact round-trip test and
+  validation (format tag, unique ids, dangling parents repaired); migration for runs saved before roots.
+- `js/diff.js` (pure): word-level LCS diff that keeps paragraph breaks, `textStats` (words,
+  paragraphs, list items), `briefDiff` per element (plugged / unplugged / edited / same / absent, with
+  the inline word diff for edited elements, Rules compared as its three labelled sub-fields), and
+  `settingsDiff`.
+- `js/similarity.js` (pure): Sorensen-Dice overlap of word bags, 0–1, symmetric, 1.0 for identical
+  text; `percentDifferent`; `noiseFloor` (mean pairwise similarity across same-brief runs).
+  15 diff and similarity tests. 66 tests pass in all.
+- Tree drawer (`js/tree-view.js`): root groups with the first line of the Task, nodes indented by
+  depth, glyph, code, seven chips, computed label, time, current node in gold with a note field
+  (notes are stored on the run and shown in the label), Load on click, a Compare button per node,
+  New root and Compare in the drawer header.
+- Compare panel (`js/compare-view.js`) over the field, dismissible with Close or Escape, with two
+  node pickers (default: parent on the left, node on the right) and the five sections in the §4.6
+  order: brief diff with chips side by side, settings diff (e.g. Temperature 0.7 → 0.2), output diff
+  with a stats line per side and a colour legend, noise-floor note ("differed by about N%") when either
+  node has same-brief siblings or the Run again offer when neither does, and predictions.
+- Run again: a same-brief sibling of the current node (same parent, same root, same settings),
+  offered on the field only while the field still matches the current node, and from the Compare
+  panel. `similarityToParent` is stored on every run with a parent.
+- New root (drawer header, and Start blank) clears the field and detaches from the current node, so
+  the next Run starts a new top-level group. Nothing is deleted.
+- Storage: the tree is saved in the export format under `brief-lab.tree.v1`; a warning appears in the
+  drawer past 2 MB, and a different warning if the browser refuses the write. Clear everything closes
+  Compare and resets the drawer.
+- Checked in the browser with a seeded four-node tree (two roots, one same-brief pair, one child):
+  tree layout, load, labels, both noise-floor paths, settings diff, and the brief/output diffs.
+
+### Decisions made on my own (say if any is wrong)
+1. **Root groups carry their own id** (`rootId` on every run). A "Run again" sibling of a root-level
+   run stays in the same group, matching the tree rows in your brief (A1 and A2 both under Root A).
+2. **Same-brief siblings** are any runs anywhere in the tree with the identical assembled brief and
+   identical provider, model, and temperature, not only direct siblings. A temperature change breaks
+   the group, so the noise floor is never computed across different settings.
+3. **Similarity is Sorensen-Dice on word bags** ("the share of words the two outputs have in common,
+   counting repeats"). It is explained in one sentence at the top of `similarity.js`.
+4. **Default Compare pair** is parent-on-the-left, node-on-the-right; a root-level node is compared
+   with the current node (or the previous run) since it has no parent.
+5. **Start blank now also detaches** from the current node (same as New root). Loading the walkthrough
+   task does not, so a student can branch a loaded node onto the sample task if they choose.
+6. **Notes** are limited to 80 characters and appear after the computed label in the row.
+
+### Next
+- Phase 4: blind mode (drop selection with tests, hidden nodes, the response panel, File your call,
+  reveal with three outcomes, the calibration record) and the criteria checklist.
+
 ## Phase 2 — The provider layer (done 2026-09-17)
 
 ### Done

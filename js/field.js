@@ -104,7 +104,16 @@ export function mountField({ host, onChange, onRun }) {
     text: FIELD.run,
     onclick: () => onRun('run'),
   });
-  const runRow = el('div', { class: 'run-row' }, [runButton]);
+  const runAgainButton = el('button', {
+    type: 'button',
+    class: 'button button-secondary',
+    id: 'btn-run-again',
+    text: FIELD.runAgain,
+    title: FIELD.runAgainHint,
+    hidden: true,
+    onclick: () => onRun('again'),
+  });
+  const runRow = el('div', { class: 'run-row' }, [runButton, runAgainButton]);
 
   const assemblerRoot = el('section', { class: 'node node-assembler', 'aria-label': FIELD.assemblerName }, [
     el('div', { class: 'node-head' }, [
@@ -215,6 +224,9 @@ export function mountField({ host, onChange, onRun }) {
 
     runButton.disabled = state.busy || prompt.length === 0;
     runButton.textContent = state.busy ? FIELD.running : FIELD.run;
+    // Run again is offered only when the field still matches the current node.
+    show(runAgainButton, changed === false);
+    runAgainButton.disabled = state.busy;
 
     drawWires();
   }

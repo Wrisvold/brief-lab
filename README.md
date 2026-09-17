@@ -37,8 +37,13 @@ brief-lab/
     settings.js       the Settings drawer (key in sessionStorage, model list, temperature)
     status.js         renders plain-language status and error blocks
     field.js          the seven nodes, wires, and the Brief node
+    tree.js           lineage operations: filing, roots, codes, labels, export/import
+    tree-view.js      the tree drawer
+    diff.js           word-level diff, text stats, brief and settings diffs
+    similarity.js     how alike two outputs are (0-1) and the noise floor
+    compare-view.js   the Compare panel
     dom.js, storage.js, state.js   small helpers
-    (later phases add: tree, diff, similarity, blind, walkthrough, export)
+    (later phases add: blind, walkthrough, export)
   data/
     walkthrough.json           the built-in sample task
     walkthrough-recorded.json  recorded walkthrough runs (Phase 5; you generate this from the app)

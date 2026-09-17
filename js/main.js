@@ -1,16 +1,14 @@
 // Brief Lab — main.js
-// Entry point: fills the page shell from copy.js, mounts the field and the Settings
-// drawer, runs the brief against the provider, and files each run.
+// Entry point: fills the page shell from copy.js, mounts the field, the Settings drawer,
+// the tree drawer, and the Compare panel; runs the brief against the provider; files runs.
 
 import {
   APP, EXPLAINERS, FIELD, PROMPT, OUTPUT, TREE, COMPARE, SETTINGS, FOOTER, ERRORS, WALKTHROUGH, fill,
 } from './copy.js';
 import {
-  STORAGE_KEY_DRAFT, STORAGE_KEY_MODE, STORAGE_KEY_TREE, STORAGE_PREFIX, WALKTHROUGH_TASK_URL, EXPORT_FORMAT_VERSION,
+  STORAGE_KEY_DRAFT, STORAGE_KEY_MODE, STORAGE_KEY_TREE, STORAGE_PREFIX, STORAGE_WARN_BYTES, WALKTHROUGH_TASK_URL,
 } from './constants.js';
-import {
-  ELEMENTS, makeBrief, copyBrief, assemble, estimateTokens, briefFromTask, briefHasAnyText, makeRun, isPlugged,
-} from './model.js';
+import { makeBrief, copyBrief, assemble, estimateTokens, briefFromTask, briefHasAnyText } from './model.js';
 import { $, el, setText, show, debounce } from './dom.js';
 import { local, session } from './storage.js';
 import { state, subscribe, notify, currentRun } from './state.js';
@@ -18,6 +16,10 @@ import { mountField } from './field.js';
 import { loadSettings, mountSettingsBody, getKey } from './settings.js';
 import { callModel } from './provider.js';
 import { renderStatus, errorEntry } from './status.js';
+import { fileRun, migrate, serialize, deserialize, byteSize, byId, parentOf } from './tree.js';
+import { similarity } from './similarity.js';
+import { mountTree } from './tree-view.js';
+import { mountCompare, defaultPair } from './compare-view.js';
 
 // ---------- shell ----------
 
@@ -105,59 +107,53 @@ function loadDraft() {
   if (typeof draft.currentRunId === 'string') state.currentRunId = draft.currentRunId;
 }
 
-// ---------- runs (flat list until the tree arrives in Phase 3) ----------
+// ---------- the tree in storage, with the size guard ----------
+
+function renderStorageWarning(text) {
+  let host = $('tree-warning');
+  if (!host) {
+    host = el('div', { id: 'tree-warning', class: 'tree-warning' });
+    $('tree-list').before(host);
+  }
+  if (!text) {
+    host.replaceChildren();
+    host.className = 'tree-warning';
+    return;
+  }
+  renderStatus(host, { title: text }, {}, 'warn');
+  host.classList.add('tree-warning');
+}
 
 function saveRuns() {
-  local.set(STORAGE_KEY_TREE, { version: EXPORT_FORMAT_VERSION, runs: state.runs });
+  const payload = serialize(state.runs, state.currentRunId);
+  const ok = local.set(STORAGE_KEY_TREE, payload);
+  if (!ok) {
+    renderStorageWarning(TREE.storageFailed);
+    return;
+  }
+  const size = byteSize(payload);
+  if (size > STORAGE_WARN_BYTES) {
+    renderStorageWarning(fill(TREE.storageWarning, { size: `${(size / (1024 * 1024)).toFixed(1)} MB` }));
+  } else {
+    renderStorageWarning('');
+  }
 }
 
 function loadRuns() {
   const saved = local.get(STORAGE_KEY_TREE, null);
-  if (saved && Array.isArray(saved.runs)) state.runs = saved.runs;
-  if (state.currentRunId && !state.runs.some((r) => r.id === state.currentRunId)) state.currentRunId = null;
-}
-
-function chipsFor(brief) {
-  return el('span', { class: 'chips', 'aria-hidden': 'true' },
-    ELEMENTS.map((e) => el('span', { class: isPlugged(brief, e.key) ? 'chip' : 'chip is-hollow' })));
-}
-
-function runLabel(run) {
-  const task = (run.brief.task && run.brief.task.text || '').split(/\r?\n/)[0].trim();
-  return task || TREE.fullBrief;
-}
-
-function timeOf(run) {
-  const d = new Date(run.createdAt);
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function renderRuns() {
-  const host = $('tree-list');
-  if (state.runs.length === 0) {
-    host.replaceChildren(el('p', { class: 'muted', text: TREE.empty }));
-    return;
+  if (!saved) return;
+  try {
+    // Older saves (Phase 2) were { version, runs } without the export format tag.
+    const parsed = saved.format ? deserialize(saved) : { runs: migrate(Array.isArray(saved.runs) ? saved.runs : []), currentRunId: null };
+    state.runs = parsed.runs;
+  } catch {
+    state.runs = [];
   }
-  host.replaceChildren(
-    ...state.runs.map((run) => {
-      const isCurrent = run.id === state.currentRunId;
-      return el('button', {
-        type: 'button',
-        class: isCurrent ? 'tree-node is-current' : 'tree-node',
-        'aria-current': isCurrent ? 'true' : null,
-        onclick: () => loadRun(run),
-      }, [
-        el('span', { class: 'run-row-item' }, [
-          chipsFor(run.brief),
-          el('span', { class: 'run-label', text: runLabel(run) }),
-          el('span', { class: 'run-time', text: timeOf(run) }),
-        ]),
-      ]);
-    }),
-  );
+  if (state.currentRunId && !byId(state.runs, state.currentRunId)) state.currentRunId = null;
 }
 
-// Put a run's brief back on the field and show its output. Editing then branches from it.
+// ---------- loading a run onto the field ----------
+
 function loadRun(run) {
   state.brief = copyBrief(run.brief);
   state.prediction = '';
@@ -170,23 +166,40 @@ function loadRun(run) {
   notify('brief');
 }
 
+// Detach from the current node: the next Run starts a new root group.
+function newRoot({ clearField = true } = {}) {
+  if (clearField) state.brief = makeBrief();
+  state.prediction = '';
+  state.currentRunId = null;
+  field.syncInputs();
+  if (clearField) field.focusFirstEmpty();
+  renderOutput(null);
+  renderStatus($('output-status'), null);
+  saveDraft();
+  notify('runs');
+  notify('brief');
+}
+
 // ---------- Run ----------
 
-async function onRun() {
+// mode: 'run' (child of the current node, or a fresh root) | 'again' (same-brief sibling of the current node)
+async function onRun(mode = 'run') {
   if (state.busy) return;
-  const prompt = assemble(state.brief);
+  const status = $('output-status');
+  const current = currentRun();
+  const again = mode === 'again' && current;
+
+  const briefSnapshot = again ? copyBrief(current.brief) : copyBrief(state.brief);
+  const prompt = assemble(briefSnapshot);
   if (!prompt) return;
   const key = getKey();
-  const status = $('output-status');
   if (!key) {
     renderStatus(status, ERRORS.missingKey, {}, 'error');
     return;
   }
 
-  const settings = { ...state.settings };
-  const parentId = state.currentRunId;
+  const settings = again ? { ...current.settings } : { ...state.settings };
   const prediction = state.prediction;
-  const briefSnapshot = copyBrief(state.brief);
   const started = Date.now();
 
   state.busy = true;
@@ -210,14 +223,25 @@ async function onRun() {
         }
       },
     });
-    const run = makeRun({ parentId, brief: briefSnapshot, settings, prediction, output });
-    state.runs.push(run);
+    const parent = again ? parentOf(state.runs, current) : current;
+    const run = fileRun(state.runs, {
+      parent,
+      sameBriefAs: again ? current : null,
+      brief: briefSnapshot,
+      settings,
+      prediction,
+      output,
+      similarityToParent: parent ? similarity(parent.output, output) : null,
+    });
     state.currentRunId = run.id;
     state.prediction = '';
+    if (again) state.brief = copyBrief(run.brief);
     saveRuns();
     renderOutput(run);
     renderStatus(status, {
-      title: fill(OUTPUT.done, { provider: providerLabel(settings.provider), model: settings.model, seconds: ((Date.now() - started) / 1000).toFixed(1) }),
+      title: fill(OUTPUT.done, {
+        provider: providerLabel(settings.provider), model: settings.model, seconds: ((Date.now() - started) / 1000).toFixed(1),
+      }),
     }, {}, 'info');
   } catch (err) {
     renderStatus(status, ...errorEntry(err), 'error');
@@ -253,15 +277,6 @@ async function loadWalkthroughTask() {
   notify('brief');
 }
 
-function startBlank() {
-  state.brief = makeBrief();
-  state.prediction = '';
-  field.syncInputs();
-  field.focusFirstEmpty();
-  saveDraft();
-  notify('brief');
-}
-
 function mountFieldActions() {
   const menu = el('details', { class: 'menu' });
   const closeMenu = () => menu.removeAttribute('open');
@@ -274,13 +289,40 @@ function mountFieldActions() {
     el('summary', { class: 'button button-secondary button-small', text: FIELD.loadTask }),
     el('div', { class: 'menu-list' }, [
       el('button', { type: 'button', class: 'menu-item', text: FIELD.loadWalkthroughTask, onclick: guarded(loadWalkthroughTask) }),
-      el('button', { type: 'button', class: 'menu-item', text: FIELD.startBlank, onclick: guarded(startBlank) }),
+      el('button', { type: 'button', class: 'menu-item', text: FIELD.startBlank, onclick: guarded(() => newRoot()) }),
     ]),
   );
   document.addEventListener('click', (e) => {
     if (!menu.contains(e.target)) closeMenu();
   });
   $('field-actions').replaceChildren(menu);
+}
+
+// ---------- tree drawer ----------
+
+function mountTreeActions() {
+  $('tree-actions').replaceChildren(
+    el('button', {
+      type: 'button',
+      class: 'button button-secondary button-small',
+      text: TREE.newRoot,
+      onclick: () => {
+        if (briefHasAnyText(state.brief) && !window.confirm(TREE.newRootConfirm)) return;
+        newRoot();
+      },
+    }),
+    el('button', {
+      type: 'button',
+      class: 'button button-secondary button-small',
+      text: TREE.compare,
+      disabled: state.runs.length < 2,
+      onclick: () => {
+        const cur = currentRun() || state.runs[state.runs.length - 1];
+        if (!cur) return;
+        compare.open(...defaultPair(state.runs, cur));
+      },
+    }),
+  );
 }
 
 // ---------- mode ----------
@@ -339,7 +381,9 @@ function mountClearEverything() {
     state.currentRunId = null;
     field.syncInputs();
     renderStatus($('output-status'), null);
+    renderStorageWarning('');
     renderOutput(null);
+    compare.close();
     mountSettingsBody($('settings-body'));
     notify('runs');
     notify('brief');
@@ -362,22 +406,49 @@ const field = mountField({
   onRun,
 });
 
+const tree = mountTree({
+  host: $('tree-list'),
+  onLoad: loadRun,
+  onCompare: (run) => compare.open(...defaultPair(state.runs, run)),
+  onNote: (run, text) => {
+    run.note = String(text || '').trim();
+    saveRuns();
+    notify('runs');
+  },
+});
+
+const compare = mountCompare({
+  panel: $('compare'),
+  body: $('compare-body'),
+  actions: $('compare-actions'),
+  onRunAgain: (run) => {
+    compare.close();
+    loadRun(run);
+    onRun('again');
+  },
+});
+
 subscribe((topic) => {
   if (topic === 'brief' || topic === 'runs' || topic === 'settings') {
     field.refresh();
     renderPrompt();
   }
-  if (topic === 'runs') renderRuns();
+  if (topic === 'runs') {
+    tree.render();
+    mountTreeActions();
+    compare.refresh();
+  }
 });
 
 mountPromptActions();
 mountFieldActions();
+mountTreeActions();
 mountMode();
 mountSettings();
 mountClearEverything();
 field.syncInputs();
 renderPrompt();
-renderRuns();
+tree.render();
 renderOutput(currentRun());
 
 if (!local.available()) {

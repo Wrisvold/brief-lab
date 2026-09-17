@@ -245,6 +245,12 @@ export const TREE = {
   minus: '– {element}',
   plus: '+ {element}',
   edited: 'edited {element}',
+  unchanged: 'same as parent',
+  rootLabel: 'Root {letter}',
+  noteLabel: 'Note',
+  noteHint: 'A short note on the current node, for your own records.',
+  storageFailed: 'The browser refused to save the tree. Export it now so nothing is lost.',
+  runAgainHint: 'Same brief, same settings: a sibling for the noise floor.',
 };
 
 // The Compare panel.
@@ -268,6 +274,18 @@ export const COMPARE = {
   unpluggedWord: 'unplugged',
   added: 'added',
   removed: 'removed',
+  pickLeft: 'Left node',
+  pickRight: 'Right node',
+  sameNode: 'Pick two different nodes to compare.',
+  statusPlugged: 'plugged in on the right',
+  statusUnplugged: 'unplugged on the right',
+  statusEdited: 'edited',
+  statusSame: 'same on both sides',
+  statusAbsent: 'not used on either side',
+  outputOf: 'Output of {code}',
+  noiseFloorRuns: 'Based on {runs} runs of the identical brief.',
+  predictionOf: 'Prediction on {code}',
+  legend: 'Red with a line through it: words only on the left. Blue underlined: words only on the right.',
 };
 
 // Blind mode.
