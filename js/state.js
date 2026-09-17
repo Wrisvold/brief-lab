@@ -29,6 +29,9 @@ export const state = {
   settings: defaultSettings(),
   // True while a provider call is in flight.
   busy: false,
+  // True while the current node is an unrevealed blind run: the field shows the parent's
+  // brief behind a mask, so the dropped element stays secret.
+  masked: false,
 };
 
 const listeners = new Set();

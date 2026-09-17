@@ -6,9 +6,10 @@
 // wires without rebuilding textareas, so typing never loses focus.
 
 import { ELEMENTS, RULES_FIELDS, isPlugged, hasText, assemble, estimateTokens } from './model.js';
-import { ELEMENT_HINTS, RULES_HINTS, FIELD, PROMPT, fill } from './copy.js';
+import { ELEMENT_HINTS, RULES_HINTS, FIELD, PROMPT, BLIND, fill } from './copy.js';
+import { canRunBlind } from './blind.js';
 import { el, svgEl, show } from './dom.js';
-import { state, fieldChangedSinceRun } from './state.js';
+import { state, fieldChangedSinceRun, currentRun } from './state.js';
 
 export function mountField({ host, onChange, onRun }) {
   const views = new Map();
@@ -113,7 +114,21 @@ export function mountField({ host, onChange, onRun }) {
     hidden: true,
     onclick: () => onRun('again'),
   });
-  const runRow = el('div', { class: 'run-row' }, [runButton, runAgainButton]);
+  const runBlindButton = el('button', {
+    type: 'button',
+    class: 'button button-secondary',
+    id: 'btn-run-blind',
+    text: FIELD.runBlind,
+    hidden: true,
+    onclick: () => onRun('blind'),
+  });
+  const runRow = el('div', { class: 'run-row' }, [runButton, runAgainButton, runBlindButton]);
+
+  // The mask shown over the field while a blind run's brief is hidden.
+  const mask = el('div', { class: 'field-mask', hidden: true }, [
+    el('p', { class: 'field-mask-title', text: BLIND.maskTitle }),
+    el('p', { text: BLIND.hiddenBrief }),
+  ]);
 
   const assemblerRoot = el('section', { class: 'node node-assembler', 'aria-label': FIELD.assemblerName }, [
     el('div', { class: 'node-head' }, [
@@ -140,7 +155,7 @@ export function mountField({ host, onChange, onRun }) {
 
   const wires = svgEl('svg', { class: 'wires', 'aria-label': FIELD.wiresLabel, role: 'img' });
 
-  host.replaceChildren(wires, ...[...views.values()].map((v) => v.root), assemblerRoot);
+  host.replaceChildren(wires, ...[...views.values()].map((v) => v.root), assemblerRoot, mask);
 
   function drawWires() {
     const hostRect = host.getBoundingClientRect();
@@ -224,9 +239,21 @@ export function mountField({ host, onChange, onRun }) {
 
     runButton.disabled = state.busy || prompt.length === 0;
     runButton.textContent = state.busy ? FIELD.running : FIELD.run;
-    // Run again is offered only when the field still matches the current node.
-    show(runAgainButton, changed === false);
+    // Run again and Run blind are offered only while the field still matches the current node.
+    const cur = currentRun();
+    show(runAgainButton, changed === false && !state.masked);
     runAgainButton.disabled = state.busy;
+    show(runBlindButton, changed === false && !state.masked);
+    const blindOk = Boolean(cur) && canRunBlind(cur.brief);
+    runBlindButton.disabled = state.busy || !blindOk;
+    runBlindButton.title = blindOk ? BLIND.taskNote : fill(BLIND.tooFew, { n: 3 });
+
+    // While a blind brief is hidden, the field is masked and inert.
+    host.classList.toggle('is-masked', Boolean(state.masked));
+    show(mask, Boolean(state.masked));
+    for (const v of views.values()) v.root.toggleAttribute('inert', Boolean(state.masked));
+    assemblerRoot.toggleAttribute('inert', Boolean(state.masked));
+    if (state.masked) show(changedLine, false);
 
     drawWires();
   }

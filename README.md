@@ -42,8 +42,10 @@ brief-lab/
     diff.js           word-level diff, text stats, brief and settings diffs
     similarity.js     how alike two outputs are (0-1) and the noise floor
     compare-view.js   the Compare panel
+    blind.js          blind mode: drop selection, outcomes, calibration
+    blind-view.js     the blind response panel; calibration-view.js the calibration table
     dom.js, storage.js, state.js   small helpers
-    (later phases add: blind, walkthrough, export)
+    (later phases add: walkthrough, export)
   data/
     walkthrough.json           the built-in sample task
     walkthrough-recorded.json  recorded walkthrough runs (Phase 5; you generate this from the app)

@@ -1,14 +1,17 @@
 // Brief Lab — main.js
 // Entry point: fills the page shell from copy.js, mounts the field, the Settings drawer,
-// the tree drawer, and the Compare panel; runs the brief against the provider; files runs.
+// the tree drawer, the Compare panel, blind mode, and the criteria checklist; runs the
+// brief against the provider; files runs.
 
 import {
-  APP, EXPLAINERS, FIELD, PROMPT, OUTPUT, TREE, COMPARE, SETTINGS, FOOTER, ERRORS, WALKTHROUGH, fill,
+  APP, EXPLAINERS, FIELD, PROMPT, OUTPUT, TREE, COMPARE, SETTINGS, FOOTER, ERRORS, WALKTHROUGH, BLIND, CALIBRATION, fill,
 } from './copy.js';
 import {
   STORAGE_KEY_DRAFT, STORAGE_KEY_MODE, STORAGE_KEY_TREE, STORAGE_PREFIX, STORAGE_WARN_BYTES, WALKTHROUGH_TASK_URL,
 } from './constants.js';
-import { makeBrief, copyBrief, assemble, estimateTokens, briefFromTask, briefHasAnyText } from './model.js';
+import {
+  makeBrief, copyBrief, assemble, estimateTokens, briefFromTask, briefHasAnyText, isPlugged, splitCriteria,
+} from './model.js';
 import { $, el, setText, show, debounce } from './dom.js';
 import { local, session } from './storage.js';
 import { state, subscribe, notify, currentRun } from './state.js';
@@ -20,6 +23,9 @@ import { fileRun, migrate, serialize, deserialize, byteSize, byId, parentOf } fr
 import { similarity } from './similarity.js';
 import { mountTree } from './tree-view.js';
 import { mountCompare, defaultPair } from './compare-view.js';
+import { chooseDrop, dropElement } from './blind.js';
+import { mountBlind } from './blind-view.js';
+import { mountCalibration } from './calibration-view.js';
 
 // ---------- shell ----------
 
@@ -52,11 +58,22 @@ function renderShell() {
   }
 }
 
+// A blind run whose brief is still secret.
+function isHidden(run) {
+  return Boolean(run && run.blind && !run.blind.revealed);
+}
+
 // ---------- the assembled-brief panel ----------
 
 function renderPrompt() {
-  const prompt = assemble(state.brief);
   const pre = $('prompt-text');
+  if (state.masked) {
+    pre.textContent = BLIND.hiddenBrief;
+    pre.classList.add('muted');
+    setText('prompt-counts', '');
+    return;
+  }
+  const prompt = assemble(state.brief);
   pre.textContent = prompt || PROMPT.empty;
   pre.classList.toggle('muted', prompt.length === 0);
   setText('prompt-counts', fill(PROMPT.counts, { chars: prompt.length, tokens: estimateTokens(prompt) }));
@@ -68,6 +85,7 @@ function mountPromptActions() {
     class: 'button button-quiet button-small',
     text: PROMPT.copy,
     onclick: async () => {
+      if (state.masked) return;
       try {
         await navigator.clipboard.writeText(assemble(state.brief));
         copyButton.textContent = PROMPT.copied;
@@ -80,17 +98,50 @@ function mountPromptActions() {
   $('prompt-actions').replaceChildren(copyButton);
 }
 
-// ---------- the output panel ----------
+// ---------- the output panel, criteria checklist, blind panel ----------
 
 function renderOutput(run) {
   const pre = $('output-text');
   if (!run) {
     pre.textContent = OUTPUT.empty;
     pre.classList.add('muted');
+  } else {
+    pre.textContent = run.output;
+    pre.classList.remove('muted');
+  }
+  renderCriteria(run);
+  blind.render(run, run ? parentOf(state.runs, run) : null);
+}
+
+// Each criterion as a checkbox the student ticks against the output. Ticks live on the run.
+// Hidden while a blind brief is secret (the checklist would reveal whether Criteria is plugged).
+function renderCriteria(run) {
+  const host = $('criteria');
+  if (!run || isHidden(run) || !isPlugged(run.brief, 'criteria')) {
+    host.replaceChildren();
     return;
   }
-  pre.textContent = run.output;
-  pre.classList.remove('muted');
+  const items = splitCriteria(run.brief.criteria.text);
+  if (items.length === 0) {
+    host.replaceChildren();
+    return;
+  }
+  const existing = new Map((run.criteriaChecks || []).map((c) => [c.criterion, c.met]));
+  const list = el('ul', { class: 'criteria-list' }, items.map((criterion, i) => {
+    const input = el('input', { type: 'checkbox', id: `criterion-${i}` });
+    input.checked = existing.get(criterion) === true;
+    input.addEventListener('change', () => {
+      run.criteriaChecks = items.map((c, j) => ({ criterion: c, met: list.querySelector(`#criterion-${j}`).checked }));
+      saveRuns();
+      compare.refresh();
+    });
+    return el('li', {}, [el('label', { for: `criterion-${i}` }, [input, el('span', { text: criterion })])]);
+  }));
+  host.replaceChildren(
+    el('h3', { text: OUTPUT.criteriaTitle }),
+    list,
+    el('p', { class: 'criteria-note', text: OUTPUT.criteriaNote }),
+  );
 }
 
 // ---------- the draft (what is on the field) ----------
@@ -155,7 +206,15 @@ function loadRuns() {
 // ---------- loading a run onto the field ----------
 
 function loadRun(run) {
-  state.brief = copyBrief(run.brief);
+  if (isHidden(run)) {
+    // Keep the secret: the field shows the parent's brief behind a mask.
+    const parent = parentOf(state.runs, run);
+    state.brief = copyBrief(parent ? parent.brief : run.brief);
+    state.masked = true;
+  } else {
+    state.brief = copyBrief(run.brief);
+    state.masked = false;
+  }
   state.prediction = '';
   state.currentRunId = run.id;
   field.syncInputs();
@@ -171,6 +230,7 @@ function newRoot({ clearField = true } = {}) {
   if (clearField) state.brief = makeBrief();
   state.prediction = '';
   state.currentRunId = null;
+  state.masked = false;
   field.syncInputs();
   if (clearField) field.focusFirstEmpty();
   renderOutput(null);
@@ -182,14 +242,34 @@ function newRoot({ clearField = true } = {}) {
 
 // ---------- Run ----------
 
-// mode: 'run' (child of the current node, or a fresh root) | 'again' (same-brief sibling of the current node)
+// mode: 'run'   child of the current node, or a fresh root
+//       'again' same-brief sibling of the current node
+//       'blind' child of the current node with one plugged element (never Task) dropped and hidden
 async function onRun(mode = 'run') {
-  if (state.busy) return;
+  if (state.busy || state.masked) return;
   const status = $('output-status');
   const current = currentRun();
   const again = mode === 'again' && current;
+  const blindMode = mode === 'blind' && current;
+  if (mode === 'blind' && !current) {
+    renderStatus(status, { title: BLIND.needsRun }, {}, 'warn');
+    return;
+  }
 
-  const briefSnapshot = again ? copyBrief(current.brief) : copyBrief(state.brief);
+  let briefSnapshot;
+  let dropped = null;
+  if (blindMode) {
+    dropped = chooseDrop(current.brief);
+    if (!dropped) {
+      renderStatus(status, { title: fill(BLIND.tooFew, { n: 3 }) }, {}, 'warn');
+      return;
+    }
+    briefSnapshot = dropElement(current.brief, dropped);
+  } else if (again) {
+    briefSnapshot = copyBrief(current.brief);
+  } else {
+    briefSnapshot = copyBrief(state.brief);
+  }
   const prompt = assemble(briefSnapshot);
   if (!prompt) return;
   const key = getKey();
@@ -198,7 +278,7 @@ async function onRun(mode = 'run') {
     return;
   }
 
-  const settings = again ? { ...current.settings } : { ...state.settings };
+  const settings = again || blindMode ? { ...current.settings } : { ...state.settings };
   const prediction = state.prediction;
   const started = Date.now();
 
@@ -232,10 +312,16 @@ async function onRun(mode = 'run') {
       prediction,
       output,
       similarityToParent: parent ? similarity(parent.output, output) : null,
+      blind: blindMode ? { droppedElement: dropped } : null,
     });
     state.currentRunId = run.id;
     state.prediction = '';
     if (again) state.brief = copyBrief(run.brief);
+    if (blindMode) {
+      // The field keeps the parent's brief behind a mask until the reveal.
+      state.brief = copyBrief(current.brief);
+      state.masked = true;
+    }
     saveRuns();
     renderOutput(run);
     renderStatus(status, {
@@ -258,6 +344,36 @@ function providerLabel(provider) {
   return provider === 'gemini' ? 'Gemini' : provider === 'openai' ? 'OpenAI' : provider;
 }
 
+// ---------- blind mode: file and reveal ----------
+
+function fileCall(run, { studentCall, confidence, reason }) {
+  if (!run.blind || run.blind.revealed || run.blind.studentCall) return;
+  run.blind.studentCall = studentCall;
+  run.blind.confidence = confidence;
+  run.blind.reason = reason || '';
+  saveRuns();
+  renderOutput(run);
+  notify('runs');
+}
+
+function reveal(run) {
+  if (!run.blind || run.blind.revealed) return;
+  run.blind.revealed = true;
+  saveRuns();
+  // Unmask: the field now shows the blind brief with the dropped element unplugged.
+  if (state.currentRunId === run.id) {
+    state.brief = copyBrief(run.brief);
+    state.masked = false;
+    field.syncInputs();
+  }
+  renderOutput(run);
+  saveDraft();
+  notify('runs');
+  notify('brief');
+  const parent = parentOf(state.runs, run);
+  if (parent) compare.open(parent, run);
+}
+
 // ---------- Load a task / Start blank ----------
 
 async function loadWalkthroughTask() {
@@ -272,6 +388,7 @@ async function loadWalkthroughTask() {
   }
   state.brief = briefFromTask(task);
   state.prediction = '';
+  state.masked = false;
   field.syncInputs();
   saveDraft();
   notify('brief');
@@ -301,13 +418,14 @@ function mountFieldActions() {
 // ---------- tree drawer ----------
 
 function mountTreeActions() {
+  const midRound = isHidden(currentRun());
   $('tree-actions').replaceChildren(
     el('button', {
       type: 'button',
       class: 'button button-secondary button-small',
       text: TREE.newRoot,
       onclick: () => {
-        if (briefHasAnyText(state.brief) && !window.confirm(TREE.newRootConfirm)) return;
+        if (briefHasAnyText(state.brief) && !state.masked && !window.confirm(TREE.newRootConfirm)) return;
         newRoot();
       },
     }),
@@ -321,6 +439,14 @@ function mountTreeActions() {
         if (!cur) return;
         compare.open(...defaultPair(state.runs, cur));
       },
+    }),
+    el('button', {
+      type: 'button',
+      class: 'button button-quiet button-small',
+      text: TREE.calibration,
+      disabled: midRound,
+      title: midRound ? CALIBRATION.midRound : '',
+      onclick: () => calibrationView.open(),
     }),
   );
 }
@@ -379,11 +505,13 @@ function mountClearEverything() {
     state.prediction = '';
     state.runs = [];
     state.currentRunId = null;
+    state.masked = false;
     field.syncInputs();
     renderStatus($('output-status'), null);
     renderStorageWarning('');
     renderOutput(null);
     compare.close();
+    calibrationView.close();
     mountSettingsBody($('settings-body'));
     notify('runs');
     notify('brief');
@@ -396,6 +524,11 @@ renderShell();
 loadSettings();
 loadDraft();
 loadRuns();
+state.masked = isHidden(currentRun());
+if (state.masked) {
+  const parent = parentOf(state.runs, currentRun());
+  if (parent) state.brief = copyBrief(parent.brief);
+}
 
 const field = mountField({
   host: $('field-nodes'),
@@ -404,6 +537,19 @@ const field = mountField({
     saveDraft();
   },
   onRun,
+});
+
+const blind = mountBlind({
+  panel: $('blind-panel'),
+  onFile: fileCall,
+  onReveal: reveal,
+});
+
+const calibrationView = mountCalibration({
+  panel: $('calibration'),
+  body: $('calibration-body'),
+  actions: $('calibration-actions'),
+  title: $('calibration-title'),
 });
 
 const tree = mountTree({

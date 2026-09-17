@@ -46,6 +46,17 @@ export function renderDiffRuns(runs) {
   return frag;
 }
 
+// "Criteria checks on A1: 4 of 5 met (unmet: ...)" or null when the run has no checks.
+function criteriaLine(run, code) {
+  const checks = Array.isArray(run.criteriaChecks) ? run.criteriaChecks : null;
+  if (!checks || checks.length === 0) return null;
+  const met = checks.filter((c) => c.met).length;
+  const unmet = checks.filter((c) => !c.met).map((c) => `“${c.criterion}”`);
+  const text = fill(COMPARE.criteriaLine, { code, met, total: checks.length })
+    + (unmet.length ? fill(COMPARE.criteriaUnmet, { list: unmet.join(', ') }) : '');
+  return el('p', { class: 'small', text: text });
+}
+
 export function mountCompare({ panel, body, actions, onRunAgain, onClose }) {
   let leftId = null;
   let rightId = null;
@@ -113,12 +124,16 @@ export function mountCompare({ panel, body, actions, onRunAgain, onClose }) {
       );
       const changed = d.filter((x) => x.status !== 'same' && x.status !== 'absent');
       if (changed.length === 0) briefRows.push(el('p', { class: 'muted', text: COMPARE.noBriefChange }));
+      const droppedKey = (run) => (run.blind && run.blind.revealed ? run.blind.droppedElement : null);
+      const droppedKeys = new Set([droppedKey(left), droppedKey(right)].filter(Boolean));
       for (const x of d) {
-        if (x.status === 'absent') continue;
-        const row = el('div', { class: `compare-element is-${x.status}` }, [
+        if (x.status === 'absent' && !droppedKeys.has(x.key)) continue;
+        const isDropped = droppedKeys.has(x.key);
+        const row = el('div', { class: `compare-element is-${x.status}${isDropped ? ' is-dropped' : ''}` }, [
           el('div', { class: 'compare-element-head' }, [
             el('strong', { text: x.name }),
             el('span', { class: 'muted small', text: ` · ${statusWord(x.status)}` }),
+            isDropped ? el('span', { class: 'dropped-mark', text: ` · ${BLIND.droppedMark}` }) : null,
           ]),
         ]);
         if (x.status === 'edited') {
@@ -151,6 +166,7 @@ export function mountCompare({ panel, body, actions, onRunAgain, onClose }) {
         el('span', {}, [el('strong', { text: lCode + ': ' }), fill(COMPARE.stats, ls)]),
         el('span', {}, [el('strong', { text: rCode + ': ' }), fill(COMPARE.stats, rs)]),
       ]),
+      ...[[left, lCode], [right, rCode]].map(([run, code]) => criteriaLine(run, code)).filter(Boolean),
       el('p', { class: 'small muted', text: COMPARE.legend }),
       el('div', { class: 'mono compare-text compare-output' }, [renderDiffRuns(diffWords(left.output, right.output))]),
     ];

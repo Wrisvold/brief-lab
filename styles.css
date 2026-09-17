@@ -777,3 +777,64 @@ a { color: var(--evergreen); }
 @media (max-width: 800px) {
   .compare-head { grid-template-columns: 1fr; }
 }
+
+/* ---------- Blind mode ---------- */
+
+.field-nodes.is-masked > .node,
+.field-nodes.is-masked > .wires { filter: blur(6px); opacity: 0.35; user-select: none; }
+.field-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 60px;
+  text-align: center;
+  z-index: 5;
+}
+.field-mask p { max-width: 420px; background: var(--paper); padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--line); }
+.field-mask-title { font-family: var(--serif); color: var(--evergreen); font-size: 18px; margin-bottom: 8px; }
+
+.blind-panel {
+  margin-top: var(--gap);
+  border: 2px solid var(--evergreen);
+  border-radius: var(--radius);
+  background: var(--paper);
+  padding: 10px 12px;
+}
+.blind-panel h3 { margin-bottom: 4px; }
+.blind-question { font-family: var(--serif); color: var(--evergreen); font-size: 16px; margin: 4px 0 8px; }
+.choice-list { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0 10px; padding: 0; list-style: none; }
+.choice-list label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.blind-panel input[type="text"] {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.blind-outcome { border-left: 4px solid var(--gold); padding-left: 10px; margin: 8px 0; }
+.blind-outcome p { margin: 0 0 4px; }
+.compare-element.is-dropped { outline: 2px solid var(--gold); outline-offset: 1px; }
+.dropped-mark { color: var(--ink); font-size: 13px; font-weight: 600; }
+
+/* ---------- Criteria checklist ---------- */
+
+.criteria { margin-top: var(--gap); }
+.criteria h3 { margin-bottom: 4px; }
+.criteria-list { list-style: none; margin: 0 0 6px; padding: 0; }
+.criteria-list li { margin: 3px 0; }
+.criteria-list label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.criteria-list input { margin-top: 4px; accent-color: var(--evergreen); }
+.criteria-note { color: var(--ink-soft); font-size: 13px; margin: 4px 0 0; }
+
+/* ---------- Calibration record ---------- */
+
+.panel-narrow { max-width: 720px; }
+.calibration-table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 14px; }
+.calibration-table th, .calibration-table td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+.calibration-table th { font-family: var(--serif); color: var(--evergreen); font-weight: 600; }
+.calibration-table td.num, .calibration-table th.num { text-align: right; font-family: var(--mono); font-size: 13px; }

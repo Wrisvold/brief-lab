@@ -2,6 +2,58 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## Phase 4 — Blind mode and the criteria checklist (done 2026-09-17)
+
+### Done
+- `js/blind.js` (pure, 6 tests): candidates = plugged set minus Task; `canRunBlind` (at least
+  `BLIND_MIN_PLUGGED` plugged and something droppable); `chooseDrop` uniform over candidates with an
+  injectable random (tested: never Task, never an unplugged element, every candidate reachable);
+  `dropElement` (copy with one element unplugged, text kept); `outcomeOf` (no visible difference at or
+  above the threshold whatever the call, else identified or missed); `calibration` (per element
+  dropped / identified / missed / no-difference, accuracy by confidence with no-difference rounds left
+  out of the denominator, unrevealed and recorded rounds excluded). 72 tests pass in all.
+- **Run blind** on the field, shown beside Run again while the field matches the current node, enabled
+  when the current node has three or more plugged elements. It clones the current node's brief, drops
+  the drawn element, runs with the node's settings, files the child with `blind.droppedElement`, and
+  hides the brief: the field shows the parent's brief blurred behind a "Brief hidden" mask and is
+  inert; the Assembled brief panel and the criteria checklist are hidden too (the checklist would give
+  away whether Criteria is plugged); the tree shows the node with hidden chips and "blind · unrevealed".
+- Response panel under the output (`js/blind-view.js`): the question, the parent's candidates as
+  radio choices, the Task note, Low / Medium / High, an optional one-line reason, **File your call**
+  (enabled only with an element and a confidence; "Filing is final"), then **Reveal**, then the outcome
+  block: what was dropped, the call, similarity vs threshold, and one of the three statements. The
+  replay note says a second blind run may draw the same element.
+- Reveal unmasks the field with the blind brief loaded (dropped element unplugged), re-labels the node
+  "blind · revealed", and opens Compare against the parent with the dropped element's row outlined in
+  gold and marked "dropped in this blind round".
+- **Calibration record** from the tree drawer (disabled mid-round): a table per element plus the
+  high-confidence line and the rounds counted. No totals, no score.
+- **Criteria checklist**: when the current run's brief has a plugged Criteria element, each line or
+  bullet is a checkbox under the output; ticks are stored on the run (`criteriaChecks`) and Compare
+  shows "Criteria checks on A1: 4 of 5 met (unmet: ...)" per side. The rewrite-it line sits under
+  the list.
+- Reloading mid-round restores the mask (the current node is a hidden blind run, so the field shows
+  the parent's brief).
+- Checked in the browser with a seeded blind child (similarity 0.93): mask, panel, file, reveal with
+  the no-visible-difference outcome despite a wrong call, Compare highlight, tree label, checklist
+  ticks persisted, calibration table.
+
+### Decisions made on my own (say if any is wrong)
+1. **Blind runs need a current node** with output; a round always compares against that parent. The
+   button is offered only while the field still matches the node (same rule as Run again).
+2. **The mask shows the parent's brief blurred**, not a blank field, so the student keeps the context
+   of what was on the field before the drop. Text is unreadable and the nodes are inert.
+3. **Loading a hidden node from the tree** keeps the secret: the field masks and the response panel
+   returns. Compare with a hidden node shows the outputs but replaces the brief diff with the
+   hidden-brief line.
+4. **Accuracy by confidence** excludes no-visible-difference rounds from both numerator and
+   denominator, since those rounds are neither right nor wrong.
+5. **Criteria ticks are per run**, so a same-brief sibling starts unticked.
+
+### Next
+- Phase 5: the walkthrough (stepper, eight stops, recorded-run schema and replay, "Replay live with my
+  key", hand-off to Free mode, README instructions for recording).
+
 ## Phase 3 — The tree and Compare (done 2026-09-17)
 
 ### Done

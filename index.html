@@ -87,7 +87,18 @@
     </div>
   </section>
 
-  <!-- Settings drawer. Filled in Phase 2. -->
+  <!-- Calibration record: a table, not a score. Reachable from the tree drawer. -->
+  <section id="calibration" class="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="calibration-title" hidden>
+    <div class="panel-inner panel-narrow">
+      <div class="region-head">
+        <h2 id="calibration-title"></h2>
+        <div class="region-actions" id="calibration-actions"></div>
+      </div>
+      <div id="calibration-body"></div>
+    </div>
+  </section>
+
+  <!-- Settings drawer. -->
   <aside id="settings" class="drawer-settings" role="dialog" aria-labelledby="settings-title" hidden>
     <div class="region-head">
       <h2 id="settings-title"></h2>

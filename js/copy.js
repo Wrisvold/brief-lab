@@ -286,6 +286,8 @@ export const COMPARE = {
   noiseFloorRuns: 'Based on {runs} runs of the identical brief.',
   predictionOf: 'Prediction on {code}',
   legend: 'Red with a line through it: words only on the left. Blue underlined: words only on the right.',
+  criteriaLine: 'Criteria checks on {code}: {met} of {total} met',
+  criteriaUnmet: ' (unmet: {list})',
 };
 
 // Blind mode.
@@ -307,6 +309,13 @@ export const BLIND = {
   outcomeIdentified: 'Identified. You named the missing element.',
   outcomeMissed: 'Missed. {dropped} was dropped; you said {call}. The diff below shows what {dropped} was doing.',
   outcomeNoDifference: 'Dropping {element} made no visible difference on this task. That is a finding about the element, not a mistake.',
+  needsRun: 'Run the brief first. A blind round drops an element from the current node and compares against it.',
+  maskTitle: 'Brief hidden',
+  filed: 'Your call is filed: {call} ({confidence} confidence). Reveal when you are ready.',
+  chooseBoth: 'Pick an element and a confidence level to file your call.',
+  droppedMark: 'dropped in this blind round',
+  roundOf: 'Blind round from {code}',
+  reasonShown: 'Your reason: {reason}',
 };
 
 // The calibration record: a table, not a score.
@@ -321,6 +330,10 @@ export const CALIBRATION = {
   byConfidenceNone: 'No high-confidence calls yet.',
   empty: 'No blind rounds revealed yet.',
   recordedNote: 'Recorded runs are never counted here.',
+  missed: 'Missed',
+  rounds: 'Rounds counted: {n}.',
+  midRound: 'Available once the current blind round is revealed.',
+  close: 'Close',
 };
 
 // The walkthrough stepper. Eight stops, added in the order their effect is easiest to see.
