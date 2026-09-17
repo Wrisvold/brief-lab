@@ -359,7 +359,7 @@ export const WALKTHROUGH = {
   stopLabel: 'Stop {n}',
   openCompare: 'Open Compare',
   startOver: 'Start over',
-  startOverConfirm: 'Start the walkthrough over from the first stop? Runs already in the tree are kept.',
+  startOverHint: 'Start over goes back to the first stop. Nothing is deleted; the runs stay in the tree.',
   done: 'done',
   recordedNotice: 'This output is a recorded run, not live. Replay live with your key to get your own.',
   saveRecording: 'Save these runs as the recorded walkthrough (instructor)',

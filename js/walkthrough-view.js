@@ -112,8 +112,9 @@ export function mountWalkthrough({ host, hasKey, loadBriefWithParent, runLive, f
     onFinish();
   }
 
+  // No confirmation: starting over deletes nothing. Runs stay in the tree; only the
+  // stepper position resets.
   function startOver() {
-    if (progress.started && !window.confirm(WALKTHROUGH.startOverConfirm)) return;
     progress = { started: true, finished: false, stop: 0, runIds: [] };
     enterStop(0);
   }
@@ -213,7 +214,8 @@ export function mountWalkthrough({ host, hasKey, loadBriefWithParent, runLive, f
         }
         if (!hasKey() && recording.stops.has(current)) actions.append(el('p', { class: 'small muted', text: WALKTHROUGH.noKeyOffer }));
       }
-      actions.append(el('button', { type: 'button', class: 'button button-quiet button-small', text: WALKTHROUGH.startOver, disabled: busy, onclick: startOver }));
+      actions.append(el('button', { type: 'button', class: 'button button-quiet button-small', text: WALKTHROUGH.startOver, title: WALKTHROUGH.startOverHint, disabled: busy, onclick: startOver }));
+      actions.append(el('p', { class: 'small muted', text: WALKTHROUGH.startOverHint }));
     }
 
     host.replaceChildren(list, el('div', { class: 'stepper-body' }, [copyCol, actions]));
