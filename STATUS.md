@@ -2,6 +2,15 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## In-app guide (2026-09-17)
+
+Because the app will sit on the department website with no one beside the student, it now carries
+its own guide: **How to use this** in the top bar opens "How to use Brief Lab" (start here: keys;
+the walkthrough with the stop-to-element table; on your own: compare, run again, run blind,
+predictions; handing in work; the key and confidentiality). It opens by itself on a first visit and
+stays closed once dismissed (a flag in `localStorage`). All text is `GUIDE` in `copy.js`, under the
+same 70-word and banned-word checks. The README now also covers AWS S3 / CloudFront hosting.
+
 ## Published on GitHub Pages (2026-09-17)
 
 Live at https://wrisvold.github.io/brief-lab/ (repository made public; Pages set to deploy from

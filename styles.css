@@ -888,3 +888,15 @@ a { color: var(--evergreen); }
   background: var(--paper);
   color: var(--ink);
 }
+
+/* ---------- How to use Brief Lab ---------- */
+
+.guide-body h3 { margin: 14px 0 4px; }
+.guide-body p { margin: 0 0 8px; font-size: 14px; }
+.guide-lead { font-size: 15px; border-left: 4px solid var(--gold); padding-left: 10px; }
+.guide-steps { margin: 0 0 8px; padding-left: 22px; font-size: 14px; }
+.guide-steps li { margin: 0 0 6px; }
+.guide-table { border-collapse: collapse; width: 100%; margin: 4px 0 8px; font-size: 14px; }
+.guide-table th, .guide-table td { border-bottom: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+.guide-table th { font-family: var(--serif); color: var(--evergreen); font-weight: 600; }
+.guide-table td:first-child { white-space: nowrap; font-weight: 600; }

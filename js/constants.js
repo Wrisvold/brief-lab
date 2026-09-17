@@ -119,6 +119,8 @@ export const STORAGE_KEY_MODE = 'brief-lab.mode.v1';
 export const STORAGE_KEY_DRAFT = 'brief-lab.draft.v1';
 // Walkthrough progress: which stop the student is on and which run each stop produced.
 export const STORAGE_KEY_WALKTHROUGH = 'brief-lab.walkthrough.v1';
+// Whether the "How to use Brief Lab" guide has been closed once (it opens by itself on a first visit).
+export const STORAGE_KEY_GUIDE_SEEN = 'brief-lab.guide-seen.v1';
 
 // Every key the app writes starts with this; "Clear everything" removes them all.
 export const STORAGE_PREFIX = 'brief-lab.';

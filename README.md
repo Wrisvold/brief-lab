@@ -23,6 +23,10 @@ Copy the folder to any static web host. That is the whole deployment.
 - The page must be served over `http://` or `https://`, not opened from `file://`, because browsers
   block ES modules and `fetch` of the data files from `file://`. Any static server works. For a local
   check, run `python -m http.server 8765` in the folder and open `http://localhost:8765`.
+- On AWS: upload the folder to an S3 bucket with static website hosting (index document `index.html`),
+  or put CloudFront in front of it. No server-side code, no environment variables, no build. S3 sets
+  the right content types from the file extensions; if you upload another way, make sure `.js` files
+  are served as `text/javascript` and `.json` as `application/json`, or the browser refuses them.
 - Students' browsers need outbound access to the provider endpoints listed in `js/constants.js`
   (`generativelanguage.googleapis.com` for Gemini, `api.openai.com` for OpenAI, `api.anthropic.com`
   for Claude). Nothing else is contacted.

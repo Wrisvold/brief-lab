@@ -412,6 +412,68 @@ export const WALKTHROUGH = {
   ],
 };
 
+// The in-app guide: "How to use Brief Lab". Opens on the first visit and from the top bar.
+// Every paragraph under 70 words; control names as they appear on screen.
+export const GUIDE = {
+  title: 'How to use Brief Lab',
+  button: 'How to use this',
+  close: 'Got it',
+  lead: 'Brief Lab is a place to build a seven-element brief, run it against a real model, and learn to read the output for the fingerprint of each element. Every run is kept in a tree, so you can always compare what changed. This page stays available from the "How to use this" button at the top.',
+  sections: [
+    {
+      title: 'Start here',
+      steps: [
+        'Get an API key. Press Settings. The app opens on Claude; a Claude key needs a small prepaid balance, or switch the provider to Gemini for a free key. A ChatGPT, Gemini, or Claude subscription is not an API key.',
+        'Paste the key into Settings and press Test connection. The key stays in this browser tab and goes only to the provider. It is forgotten when the tab closes.',
+        'No key yet? You can still take the walkthrough: each stop offers a recorded run, labelled as recorded on every output.',
+      ],
+    },
+    {
+      title: 'The walkthrough: eight stops for seven elements',
+      paragraphs: [
+        'The stepper at the top adds one element at a time to the same sample task and runs it after each addition. The order is the one in which each element is easiest to see, not the framework order, so the second stop adds Context, not Persona. The field below always shows the elements in framework order.',
+        'At each stop: read the short note, press Run this stop (or Replay the recorded run), then press Open Compare to see what the new element changed. Then press Next stop.',
+      ],
+      table: {
+        head: ['Stop', 'What it adds'],
+        rows: [
+          ['Task only', 'Task: the bare instruction, so you have a baseline'],
+          ['+ Context', 'Context: the situation, the facts, what the model cannot know'],
+          ['+ Rules', 'Rules: Do, Don\'t (negative space), and the Fallback'],
+          ['+ Criteria', 'Criteria: what good looks like; a checklist appears under the output'],
+          ['+ Persona', 'Persona: who the model is; watch tone change and facts stay'],
+          ['+ Examples', 'Examples: the shape you want'],
+          ['+ Steps', 'Steps: the order of work'],
+          ['Run again', 'Nothing new: the full brief runs a second time to show the noise floor'],
+        ],
+      },
+      after: 'Finish switches you to Free mode and leaves the field and tree as they are. Start over goes back to the first stop and deletes nothing.',
+    },
+    {
+      title: 'On your own',
+      paragraphs: [
+        'Change one element and compare. Edit or unplug an element on the field (the Plugged switch turns it off without erasing it), press Run, then press Compare on the new node in the tree. The panel shows what changed in the brief, then what changed in the output.',
+        'Run again. With a node loaded and the field unchanged, press Run again. Two runs of the identical brief will differ a little; that difference is the noise floor. A change smaller than it may be chance.',
+        'Run blind. With three or more elements plugged, press Run blind. One element is dropped and hidden. Read the output, name the missing element, pick a confidence, file your call, then reveal. "No visible difference" is a finding, not a mistake.',
+        'Before each run, write one sentence in the "Before you run" box: what do you expect this change to do? The tree keeps your prediction beside the result.',
+      ],
+    },
+    {
+      title: 'Handing in work',
+      paragraphs: [
+        'Copy lineage summary (in the tree header) puts a plain-text account of your runs on the clipboard: what you changed, what you predicted, what the blind rounds showed. Paste it into an assignment. Export tree saves everything as a file the app can import later.',
+        'Runs are saved in this browser only. Clear everything, at the bottom, deletes them and forgets the key.',
+      ],
+    },
+    {
+      title: 'Your key and your text',
+      paragraphs: [
+        'Your key never leaves your browser except to reach the provider you chose. Nothing is logged or sent anywhere else. Free-tier providers may use what you send to improve their models, so do not paste confidential material, client data, or anything you would not put in a public document.',
+      ],
+    },
+  ],
+};
+
 // Footer and storage.
 export const FOOTER = {
   storageNote: 'Runs are saved in this browser only. The API key is forgotten when the tab closes. No accounts, no analytics, no cookies.',

@@ -28,6 +28,7 @@ import { mountBlind } from './blind-view.js';
 import { mountCalibration } from './calibration-view.js';
 import { mountWalkthrough } from './walkthrough-view.js';
 import { formatSummary } from './summary.js';
+import { mountGuide } from './guide-view.js';
 
 // ---------- shell ----------
 
@@ -761,10 +762,22 @@ subscribe((topic) => {
   if (topic === 'settings' && state.mode === 'walkthrough') walkthrough.render();
 });
 
+const guide = mountGuide({
+  panel: $('guide'),
+  body: $('guide-body'),
+  actions: $('guide-actions'),
+  title: $('guide-title'),
+  button: $('btn-guide'),
+});
+
 mountPromptActions();
 mountFieldActions();
 mountTreeActions();
-walkthrough.init().then(() => mountMode());
+walkthrough.init().then(() => {
+  mountMode();
+  // A first visit opens the guide once the page is ready.
+  guide.openIfFirstVisit();
+});
 mountSettings();
 mountClearEverything();
 field.syncInputs();
