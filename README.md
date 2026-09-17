@@ -10,6 +10,12 @@ to name it from the output alone. A guided walkthrough builds the framework one 
 
 No build step. No server. No accounts. Vanilla HTML, CSS, and JavaScript (ES modules).
 
+## Where it is
+
+The current build is published with GitHub Pages at **https://wrisvold.github.io/brief-lab/**.
+Every push to `main` updates it within a minute or two. Nothing is stored on the site; each visitor's
+runs and key stay in their own browser.
+
 ## Hosting
 
 Copy the folder to any static web host. That is the whole deployment.

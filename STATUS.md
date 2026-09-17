@@ -2,6 +2,13 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## Published on GitHub Pages (2026-09-17)
+
+Live at https://wrisvold.github.io/brief-lab/ (repository made public; Pages set to deploy from
+`main`, root). Checked from a fresh browser: seven nodes, stepper, the recorded walkthrough replays
+end to end with the Claude Haiku label on every output, eight nodes in the tree, no console or
+network errors. Every push to `main` republishes.
+
 ## Third provider: Claude (2026-09-17)
 
 Ward's classes use Claude, so Anthropic is now a provider alongside Gemini and OpenAI, with
