@@ -2,6 +2,20 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## Third provider: Claude (2026-09-17)
+
+Ward's classes use Claude, so Anthropic is now a provider alongside Gemini and OpenAI, with
+`claude-haiku-4-5` as its default model (editable, and **List models** works against
+`api.anthropic.com/v1/models`). Same shape as the other two: the key goes in the `x-api-key` header
+only, the request is one user message with no system prompt, `max_tokens` (required by the Claude
+API) comes from the max output setting. Direct browser calls need the header
+`anthropic-dangerous-direct-browser-access: true`, which is set; the name is Anthropic's, and it is
+appropriate here because the key is the student's own and never leaves their browser. Claude-specific
+statuses are mapped: 402 and "credit balance is too low" to the no-credit message, 529 (overloaded) to
+the provider-busy retry. Five new tests (87 in all). Checked from a real browser with a bogus key:
+both endpoints answered 401 through CORS and the app showed "The provider rejected the key." A live
+call with a real Claude key has not been made yet.
+
 ## Cross-browser check (2026-09-17)
 
 Run with Playwright from a scratch folder (not part of the repo): the same scripted session in

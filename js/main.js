@@ -358,7 +358,7 @@ async function onRun(mode = 'run') {
 }
 
 function providerLabel(provider) {
-  return provider === 'gemini' ? 'Gemini' : provider === 'openai' ? 'OpenAI' : provider;
+  return { gemini: 'Gemini', openai: 'OpenAI', anthropic: 'Claude' }[provider] || provider;
 }
 
 // ---------- blind mode: file and reveal ----------

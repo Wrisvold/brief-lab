@@ -41,7 +41,7 @@ function stamp(date) {
 }
 
 function providerName(provider) {
-  return provider === 'gemini' ? 'Gemini' : provider === 'openai' ? 'OpenAI' : String(provider || '');
+  return { gemini: 'Gemini', openai: 'OpenAI', anthropic: 'Claude' }[provider] || String(provider || '');
 }
 
 function chips(run) {

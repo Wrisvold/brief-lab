@@ -98,7 +98,11 @@ export function mountSettingsBody(body) {
     const spec = PROVIDERS[state.settings.provider];
     getKeyLink.href = spec.keyUrl;
     modelListLink.href = spec.modelListUrl;
-    whereLine.textContent = state.settings.provider === 'gemini' ? SETTINGS.keyEntry.whereGemini : SETTINGS.keyEntry.whereOpenAI;
+    whereLine.textContent = {
+      gemini: SETTINGS.keyEntry.whereGemini,
+      openai: SETTINGS.keyEntry.whereOpenAI,
+      anthropic: SETTINGS.keyEntry.whereAnthropic,
+    }[state.settings.provider] || '';
     keyNote.textContent = getKey() ? SETTINGS.keyKept : SETTINGS.keyNone;
   }
 

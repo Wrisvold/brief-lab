@@ -157,6 +157,55 @@ test('callModel turns a thrown fetch into a network error', async () => {
   await assert.rejects(callModel({ provider: 'openai', ...base, fetchImpl, sleep: noSleep }), (e) => e.kind === 'network');
 });
 
+// ---------- Claude (Anthropic) ----------
+
+test('buildRequest: Claude uses x-api-key, the version header, the browser-access header, and max_tokens', () => {
+  const r = buildRequest({ provider: 'anthropic', ...base });
+  assert.equal(r.url, 'https://api.anthropic.com/v1/messages');
+  assert.equal(r.headers['x-api-key'], 'sk-secret');
+  assert.equal(r.headers['anthropic-version'], '2023-06-01');
+  assert.equal(r.headers['anthropic-dangerous-direct-browser-access'], 'true');
+  assert.ok(!('Authorization' in r.headers));
+  assert.equal(r.body.model, 'm-1');
+  assert.equal(r.body.max_tokens, 512);
+  assert.equal(r.body.temperature, 0.7);
+  assert.deepEqual(r.body.messages, [{ role: 'user', content: 'Task: Write.' }]);
+  assert.ok(!('system' in r.body));
+  // max_tokens is required by the API, so a missing value falls back to the default.
+  assert.ok(buildRequest({ provider: 'anthropic', ...base, maxOutputTokens: null }).body.max_tokens > 0);
+});
+
+test('parseResponse reads Claude text blocks and rejects empty or refused replies', () => {
+  assert.equal(parseResponse('anthropic', { content: [{ type: 'text', text: 'Hel' }, { type: 'text', text: 'lo' }], stop_reason: 'end_turn' }), 'Hello');
+  assert.throws(() => parseResponse('anthropic', { content: [], stop_reason: 'refusal' }), (e) => e.kind === 'emptyResponse');
+  assert.throws(() => parseResponse('anthropic', {}), (e) => e.kind === 'emptyResponse');
+});
+
+test('classifyError maps Claude-specific statuses: 402 billing and 529 overloaded', () => {
+  const c = (status, json = null) => classifyError({ provider: 'anthropic', status, json, model: 'm-1' }).kind;
+  assert.equal(c(401, { error: { type: 'authentication_error', message: 'invalid x-api-key' } }), 'invalidKey');
+  assert.equal(c(402, { error: { type: 'billing_error', message: 'no credit' } }), 'noQuota');
+  assert.equal(c(400, { error: { type: 'invalid_request_error', message: 'Your credit balance is too low to access the Anthropic API.' } }), 'noQuota');
+  assert.equal(c(404, { error: { type: 'not_found_error', message: 'model: nope' } }), 'unknownModel');
+  assert.equal(c(429, { error: { type: 'rate_limit_error', message: 'slow down' } }), 'rateLimit');
+  assert.equal(c(529, { error: { type: 'overloaded_error', message: 'Overloaded' } }), 'providerBusy');
+});
+
+test('parseModelList reads the Claude models list and buildModelListRequest carries the headers', () => {
+  assert.deepEqual(parseModelList('anthropic', { data: [{ id: 'claude-sonnet-5', display_name: 'Claude Sonnet 5' }, { id: 'claude-haiku-4-5' }] }), ['claude-haiku-4-5', 'claude-sonnet-5']);
+  const r = buildModelListRequest({ provider: 'anthropic', key: 'k' });
+  assert.ok(r.url.startsWith('https://api.anthropic.com/v1/models'));
+  assert.equal(r.headers['x-api-key'], 'k');
+  assert.equal(r.headers['anthropic-dangerous-direct-browser-access'], 'true');
+});
+
+test('callModel retries a Claude 529 with backoff', async () => {
+  const fetchImpl = fakeFetch([{ status: 529, json: { error: { type: 'overloaded_error', message: 'Overloaded' } } }, { status: 200, json: { content: [{ type: 'text', text: 'Ok.' }] } }]);
+  const out = await callModel({ provider: 'anthropic', ...base, fetchImpl, sleep: noSleep, backoff: [1] });
+  assert.equal(out, 'Ok.');
+  assert.equal(fetchImpl.calls.length, 2);
+});
+
 test('listModels returns names or a typed error', async () => {
   const ok = fakeFetch([{ status: 200, json: { data: [{ id: 'gpt-b' }, { id: 'gpt-a' }] } }]);
   assert.deepEqual(await listModels({ provider: 'openai', key: 'k', fetchImpl: ok }), ['gpt-a', 'gpt-b']);

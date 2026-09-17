@@ -18,7 +18,8 @@ Copy the folder to any static web host. That is the whole deployment.
   block ES modules and `fetch` of the data files from `file://`. Any static server works. For a local
   check, run `python -m http.server 8765` in the folder and open `http://localhost:8765`.
 - Students' browsers need outbound access to the provider endpoints listed in `js/constants.js`
-  (`generativelanguage.googleapis.com` for Gemini, `api.openai.com` for OpenAI). Nothing else is contacted.
+  (`generativelanguage.googleapis.com` for Gemini, `api.openai.com` for OpenAI, `api.anthropic.com`
+  for Claude). Nothing else is contacted.
 - Nothing is stored on the server. Runs live in each student's browser (`localStorage`); the API key lives in
   `sessionStorage` and is forgotten when the tab closes.
 - Built for current Chrome, Edge, Firefox, and Safari on desktop. Tablets are tolerated; phones are out of scope.
@@ -34,7 +35,7 @@ brief-lab/
     copy.js           every word a student can read
     model.js          the seven elements, the brief, the assembler, run snapshots
     main.js           entry point: wires everything together
-    provider.js       calls Gemini / OpenAI from the browser; retries, timeouts, typed errors
+    provider.js       calls Gemini / OpenAI / Claude from the browser; retries, timeouts, typed errors
     settings.js       the Settings drawer (key in sessionStorage, model list, temperature)
     status.js         renders plain-language status and error blocks
     field.js          the seven nodes, wires, and the Brief node
@@ -76,7 +77,8 @@ network. The copy tests also check that no student-facing text uses the banned w
 Open `js/constants.js`. Every value has a plain-language comment above it. The ones you are most
 likely to touch:
 
-- `PROVIDERS.gemini.defaultModel` and `PROVIDERS.openai.defaultModel`: the model name shown before a
+- `PROVIDERS.gemini.defaultModel`, `PROVIDERS.openai.defaultModel`, and
+  `PROVIDERS.anthropic.defaultModel` (Claude; Haiku by default): the model name shown before a
   student picks one. Model names change often, so the Settings drawer has a **List models** button
   that asks the provider for the current names with the student's key; the name field is also free
   text. Change the defaults here when a name is retired, but nothing breaks if you do not.

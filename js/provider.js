@@ -8,7 +8,7 @@
 // can check them without a network. callModel() wraps them with fetch, a timeout, and
 // the retry-with-backoff loop; fetch and sleep are injectable for tests.
 
-import { PROVIDERS, RETRY_BACKOFF_SECONDS, REQUEST_TIMEOUT_MS } from './constants.js';
+import { PROVIDERS, RETRY_BACKOFF_SECONDS, REQUEST_TIMEOUT_MS, ANTHROPIC_VERSION, DEFAULT_MAX_OUTPUT_TOKENS } from './constants.js';
 
 // Error kinds. Each maps to an entry in copy.js ERRORS.
 export const ERROR_KINDS = Object.freeze([
@@ -61,6 +61,26 @@ export function buildRequest({ provider, model, key, temperature, maxOutputToken
       },
     };
   }
+  if (provider === 'anthropic') {
+    return {
+      url: spec.endpoint,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': ANTHROPIC_VERSION,
+        // Required for calls made straight from a browser page. The key is the
+        // student's own and stays in their browser, which is the whole design.
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: {
+        model,
+        // max_tokens is required by the Claude API.
+        max_tokens: Number(maxOutputTokens) || DEFAULT_MAX_OUTPUT_TOKENS,
+        temperature: Number(temperature),
+        messages: [{ role: 'user', content: prompt }],
+      },
+    };
+  }
   throw new ProviderError('unexpected', {}, `unknown provider ${provider}`);
 }
 
@@ -76,6 +96,16 @@ export function buildModelListRequest({ provider, key }) {
     return {
       url: 'https://api.openai.com/v1/models',
       headers: { Authorization: `Bearer ${key}` },
+    };
+  }
+  if (provider === 'anthropic') {
+    return {
+      url: 'https://api.anthropic.com/v1/models?limit=100',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': ANTHROPIC_VERSION,
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
     };
   }
   throw new ProviderError('unexpected', {}, `unknown provider ${provider}`);
@@ -106,6 +136,13 @@ export function parseResponse(provider, json) {
       const reason = (choice && choice.finish_reason) || '';
       throw new ProviderError('emptyResponse', {}, reason ? `finish reason: ${reason}` : '');
     }
+  } else if (provider === 'anthropic') {
+    const blocks = json && Array.isArray(json.content) ? json.content : [];
+    text = blocks.map((b) => (b && b.type === 'text' && typeof b.text === 'string' ? b.text : '')).join('');
+    if (!text.trim()) {
+      const reason = (json && json.stop_reason) || '';
+      throw new ProviderError('emptyResponse', {}, reason ? `stop reason: ${reason}` : '');
+    }
   } else {
     throw new ProviderError('unexpected', {}, `unknown provider ${provider}`);
   }
@@ -127,6 +164,7 @@ export function classifyError({ provider, status, json, model }) {
   const codeStr = String(code || '').toLowerCase();
 
   if (status === 401 || status === 403) return new ProviderError('invalidKey', {}, message);
+  if (status === 402 || codeStr.includes('billing_error')) return new ProviderError('noQuota', {}, message);
   if (status === 404) return new ProviderError('unknownModel', { model, url: PROVIDERS[provider].modelListUrl }, message);
   if (status === 429) {
     if (codeStr.includes('insufficient_quota') || lower.includes('quota') && lower.includes('billing')) {
@@ -134,11 +172,12 @@ export function classifyError({ provider, status, json, model }) {
     }
     return new ProviderError('rateLimit', {}, message);
   }
-  if (status === 500 || status === 502 || status === 503 || status === 504) {
+  if (status === 500 || status === 502 || status === 503 || status === 504 || status === 529) {
     return new ProviderError('providerBusy', {}, message);
   }
   if (status === 400) {
     if (lower.includes('api key') || codeStr.includes('api_key')) return new ProviderError('invalidKey', {}, message);
+    if (lower.includes('credit balance')) return new ProviderError('noQuota', {}, message);
     if (lower.includes('not found') && lower.includes('model')) {
       return new ProviderError('unknownModel', { model, url: PROVIDERS[provider].modelListUrl }, message);
     }
@@ -160,6 +199,9 @@ export function parseModelList(provider, json) {
     const models = json && Array.isArray(json.data) ? json.data : [];
     const skip = /embedding|tts|whisper|dall-e|moderation|realtime|audio|transcribe|image|search|instruct|davinci|babbage|codex|computer-use/i;
     names = models.map((m) => String(m.id || '')).filter((id) => id && !skip.test(id));
+  } else if (provider === 'anthropic') {
+    const models = json && Array.isArray(json.data) ? json.data : [];
+    names = models.map((m) => String(m.id || '')).filter(Boolean);
   }
   return [...new Set(names)].sort();
 }

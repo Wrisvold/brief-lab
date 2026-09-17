@@ -97,7 +97,7 @@ app shows them, the element it adds, and the chips filling up. For example the f
   *run again and compare*, *fingerprint*, *noise floor*.
 - Name every control exactly as the app labels it (see the appendix), in bold.
 - Put the stop-to-element mapping on its own page or panel, and refer back to it.
-- Say plainly, once, that a ChatGPT or Gemini subscription is not an API key, and that the free
+- Say plainly, once, that a ChatGPT, Gemini, or Claude subscription is not an API key, and that the free
   Gemini key from Google AI Studio is enough.
 - Say plainly, once, that the key stays in the student's browser and goes only to the provider, and
   that free-tier providers may use what is sent for training, so nothing confidential goes in.
@@ -182,8 +182,9 @@ Every region has a collapsible **What is happening here** panel with two short p
 
 ### Settings
 
-**Provider** (Gemini or OpenAI), **API key** (masked; **Show**, **Forget key**), an explanation of
-keys including "a ChatGPT or Gemini subscription is not an API key" and the confidentiality caution,
+**Provider** (Gemini, OpenAI, or Claude), **API key** (masked; **Show**, **Forget key**), an
+explanation of keys including "a ChatGPT, Gemini, or Claude subscription is not an API key" and the
+confidentiality caution,
 **Get a key** and **Current model names** links, **Model name** (free text) with **List models**
 (asks the provider for the names this key can use), **Temperature** (0 to 1, "Higher = more variation
 between runs"), **Max output length (tokens)**, and **Test connection**.

@@ -36,7 +36,19 @@ export const PROVIDERS = {
     keyUrl: 'https://platform.openai.com/api-keys',
     modelListUrl: 'https://platform.openai.com/docs/models',
   },
+  anthropic: {
+    label: 'Claude (Anthropic)',
+    // Haiku is the small, fast, inexpensive Claude model; fine for a course.
+    // Verify at https://docs.claude.com/en/docs/about-claude/models
+    defaultModel: 'claude-haiku-4-5',
+    endpoint: 'https://api.anthropic.com/v1/messages',
+    keyUrl: 'https://console.anthropic.com/settings/keys',
+    modelListUrl: 'https://docs.claude.com/en/docs/about-claude/models',
+  },
 };
+
+// The Claude API needs a version header on every request. Anthropic keeps old versions working.
+export const ANTHROPIC_VERSION = '2023-06-01';
 
 // ---------------------------------------------------------------------------
 // Generation settings

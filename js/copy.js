@@ -93,9 +93,10 @@ export const SETTINGS = {
   modelPick: 'Available models',
   maxOutputHint: 'Roughly three quarters of a word per token.',
   keyEntry: {
-    whatIsAKey: 'An API key is a long string of letters and numbers that lets this page call a model on your behalf. It is not the same as a chat subscription: a ChatGPT or Gemini subscription is not an API key. You need a key from the provider\'s developer site.',
+    whatIsAKey: 'An API key is a long string of letters and numbers that lets this page call a model on your behalf. It is not the same as a chat subscription: a ChatGPT, Gemini, or Claude subscription is not an API key. You need a key from the provider\'s developer site.',
     whereGemini: 'Gemini: sign in at Google AI Studio and choose Get API key. The free tier is enough for this course.',
     whereOpenAI: 'OpenAI: sign in at platform.openai.com and create a key under API keys. OpenAI keys need a small prepaid balance.',
+    whereAnthropic: 'Claude: sign in at console.anthropic.com and create a key under API Keys. Claude keys need a small prepaid balance; Haiku is the inexpensive model.',
     stays: 'Your key stays in this browser tab and goes only to the provider you chose. It is not logged, saved to disk, or sent anywhere else. Closing the tab forgets it.',
     training: 'Free-tier providers may use what you send to improve their models. Do not paste confidential material, client data, or anything you would not put in a public document.',
     getKeyLink: 'Get a key',
