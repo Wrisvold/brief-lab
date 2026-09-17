@@ -218,7 +218,11 @@ export function mountWalkthrough({ host, hasKey, loadBriefWithParent, runLive, f
       actions.append(el('p', { class: 'small muted', text: WALKTHROUGH.startOverHint }));
     }
 
-    host.replaceChildren(list, el('div', { class: 'stepper-body' }, [copyCol, actions]));
+    host.replaceChildren(
+      list,
+      el('p', { class: 'small muted stepper-order-note', text: WALKTHROUGH.orderNote }),
+      el('div', { class: 'stepper-body' }, [copyCol, actions]),
+    );
   }
 
   async function init() {

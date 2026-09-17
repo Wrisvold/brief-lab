@@ -355,7 +355,8 @@ export const WALKTHROUGH = {
   replayLive: 'Replay live with my key',
   noKeyOffer: 'No key yet? You can replay recorded runs to see the walkthrough, then repeat any stop live once you have a key.',
   noRecording: 'No recorded run is available for this stop.',
-  intro: 'Eight stops. Each one adds an element to the same task and runs it, so the first tree you build is the framework itself. Fill the Prediction box before each run if you can.',
+  intro: 'Eight stops for seven elements. Stop 0 is the task alone. Stops 1 to 6 each add one element, in the order its effect is easiest to see. Stop 7 runs the finished brief a second time. Fill the Prediction box before each run if you can.',
+  orderNote: 'The stepper adds elements in the order they are easiest to see, not framework order. The field always shows them in framework order.',
   stopLabel: 'Stop {n}',
   openCompare: 'Open Compare',
   startOver: 'Start over',
@@ -369,7 +370,7 @@ export const WALKTHROUGH = {
   stops: [
     {
       title: 'Task only',
-      copy: 'A task alone is a bare instruction. The model fills every gap with its own guesses: who the reader is, how long the piece should be, what tone to take. Run it and read the result as a baseline. Everything that follows is measured against this.',
+      copy: 'The sample task is already in the Task box; the other six boxes are empty on purpose. A task alone is a bare instruction: the model fills every gap with its own guesses about the reader, the length, and the tone. Run it and read the result as a baseline.',
       after: 'Read the output once. Note what the model invented that you never told it.',
     },
     {
