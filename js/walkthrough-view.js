@@ -198,13 +198,6 @@ export function mountWalkthrough({ host, hasKey, loadBriefWithParent, runLive, f
         } else {
           copyCol.append(el('p', { class: 'stepper-after', text: WALKTHROUGH.end }));
         }
-        if (current === STOP_COUNT - 1) {
-          const canSave = allLive();
-          actions.append(el('button', {
-            type: 'button', class: 'button button-quiet button-small', text: WALKTHROUGH.saveRecording,
-            title: canSave ? WALKTHROUGH.saveRecordingHint : WALKTHROUGH.needsAllLive, disabled: !canSave, onclick: downloadRecording,
-          }));
-        }
       } else {
         actions.append(el('button', { type: 'button', class: 'button', text: WALKTHROUGH.runThisStop, disabled: busy, onclick: () => runStop(current) }));
         if (recording.stops.has(current)) {
@@ -216,6 +209,14 @@ export function mountWalkthrough({ host, hasKey, loadBriefWithParent, runLive, f
       }
       actions.append(el('button', { type: 'button', class: 'button button-quiet button-small', text: WALKTHROUGH.startOver, title: WALKTHROUGH.startOverHint, disabled: busy, onclick: startOver }));
       actions.append(el('p', { class: 'small muted', text: WALKTHROUGH.startOverHint }));
+      // The instructor control is always visible once the walkthrough has started, so nobody
+      // has to hunt for it; it is enabled only when all eight stops have live runs.
+      const canSave = allLive();
+      actions.append(el('button', {
+        type: 'button', class: 'button button-quiet button-small', text: WALKTHROUGH.saveRecording,
+        title: canSave ? WALKTHROUGH.saveRecordingHint : WALKTHROUGH.needsAllLive, disabled: !canSave || busy, onclick: downloadRecording,
+      }));
+      actions.append(el('p', { class: 'small muted', text: canSave ? WALKTHROUGH.saveRecordingHint : WALKTHROUGH.needsAllLive }));
     }
 
     host.replaceChildren(
