@@ -347,7 +347,16 @@ export const WALKTHROUGH = {
   replayLive: 'Replay live with my key',
   noKeyOffer: 'No key yet? You can replay recorded runs to see the walkthrough, then repeat any stop live once you have a key.',
   noRecording: 'No recorded run is available for this stop.',
-  comingLater: 'The walkthrough arrives in a later build phase.',
+  intro: 'Eight stops. Each one adds an element to the same task and runs it, so the first tree you build is the framework itself. Fill the Prediction box before each run if you can.',
+  stopLabel: 'Stop {n}',
+  openCompare: 'Open Compare',
+  startOver: 'Start over',
+  startOverConfirm: 'Start the walkthrough over from the first stop? Runs already in the tree are kept.',
+  done: 'done',
+  recordedNotice: 'This output is a recorded run, not live. Replay live with your key to get your own.',
+  saveRecording: 'Save these runs as the recorded walkthrough (instructor)',
+  saveRecordingHint: 'Downloads walkthrough-recorded.json built from the eight live runs of this walkthrough. Replace the file in the data folder with it.',
+  needsAllLive: 'The recording can be saved once all eight stops have live runs.',
   end: 'The walkthrough is over. The field and the tree are yours; keep going in Free mode.',
   stops: [
     {

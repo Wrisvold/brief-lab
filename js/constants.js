@@ -104,6 +104,8 @@ export const STORAGE_KEY_API_KEY = 'brief-lab.api-key';
 export const STORAGE_KEY_MODE = 'brief-lab.mode.v1';
 // The unsaved field (element text, plugs, prediction), so a reload does not lose typing.
 export const STORAGE_KEY_DRAFT = 'brief-lab.draft.v1';
+// Walkthrough progress: which stop the student is on and which run each stop produced.
+export const STORAGE_KEY_WALKTHROUGH = 'brief-lab.walkthrough.v1';
 
 // Every key the app writes starts with this; "Clear everything" removes them all.
 export const STORAGE_PREFIX = 'brief-lab.';

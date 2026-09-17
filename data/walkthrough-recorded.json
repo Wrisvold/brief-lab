@@ -1,0 +1,54 @@
+{
+  "_readme": "Recorded walkthrough runs, for students who have no API key yet. This file is a placeholder: every output is empty, so the app offers no recorded replay until it is filled. Do not write outputs by hand. Generate this file with the app itself: run the walkthrough with your key, then press 'Save these runs as the recorded walkthrough' at the final stop and replace this file with the download. See README.md, 'Recording the walkthrough runs'.",
+  "format": "brief-lab-walkthrough-recording",
+  "version": 1,
+  "taskId": "hybrid-work-standard",
+  "recordedBy": "",
+  "provider": "",
+  "model": "",
+  "date": "",
+  "temperature": null,
+  "maxOutputTokens": null,
+  "stops": [
+    {
+      "stop": 0,
+      "output": "",
+      "prediction": ""
+    },
+    {
+      "stop": 1,
+      "output": "",
+      "prediction": ""
+    },
+    {
+      "stop": 2,
+      "output": "",
+      "prediction": ""
+    },
+    {
+      "stop": 3,
+      "output": "",
+      "prediction": ""
+    },
+    {
+      "stop": 4,
+      "output": "",
+      "prediction": ""
+    },
+    {
+      "stop": 5,
+      "output": "",
+      "prediction": ""
+    },
+    {
+      "stop": 6,
+      "output": "",
+      "prediction": ""
+    },
+    {
+      "stop": 7,
+      "output": "",
+      "prediction": ""
+    }
+  ]
+}

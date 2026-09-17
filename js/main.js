@@ -26,6 +26,7 @@ import { mountCompare, defaultPair } from './compare-view.js';
 import { chooseDrop, dropElement } from './blind.js';
 import { mountBlind } from './blind-view.js';
 import { mountCalibration } from './calibration-view.js';
+import { mountWalkthrough } from './walkthrough-view.js';
 
 // ---------- shell ----------
 
@@ -108,6 +109,18 @@ function renderOutput(run) {
   } else {
     pre.textContent = run.output;
     pre.classList.remove('muted');
+  }
+  // Recorded runs are labelled on every output; never presented as live.
+  let label = $('output-recorded');
+  if (!label) {
+    label = el('p', { id: 'output-recorded', class: 'recorded-label', hidden: true });
+    pre.before(label);
+  }
+  if (run && run.recorded) {
+    label.textContent = fill(OUTPUT.recordedLabel, { model: run.recorded.model, date: run.recorded.date });
+    show(label, true);
+  } else {
+    show(label, false);
   }
   renderCriteria(run);
   blind.render(run, run ? parentOf(state.runs, run) : null);
@@ -245,15 +258,16 @@ function newRoot({ clearField = true } = {}) {
 // mode: 'run'   child of the current node, or a fresh root
 //       'again' same-brief sibling of the current node
 //       'blind' child of the current node with one plugged element (never Task) dropped and hidden
+// Resolves to the new run, or null when nothing ran.
 async function onRun(mode = 'run') {
-  if (state.busy || state.masked) return;
+  if (state.busy || state.masked) return null;
   const status = $('output-status');
   const current = currentRun();
   const again = mode === 'again' && current;
   const blindMode = mode === 'blind' && current;
   if (mode === 'blind' && !current) {
     renderStatus(status, { title: BLIND.needsRun }, {}, 'warn');
-    return;
+    return null;
   }
 
   let briefSnapshot;
@@ -262,7 +276,7 @@ async function onRun(mode = 'run') {
     dropped = chooseDrop(current.brief);
     if (!dropped) {
       renderStatus(status, { title: fill(BLIND.tooFew, { n: 3 }) }, {}, 'warn');
-      return;
+      return null;
     }
     briefSnapshot = dropElement(current.brief, dropped);
   } else if (again) {
@@ -271,11 +285,11 @@ async function onRun(mode = 'run') {
     briefSnapshot = copyBrief(state.brief);
   }
   const prompt = assemble(briefSnapshot);
-  if (!prompt) return;
+  if (!prompt) return null;
   const key = getKey();
   if (!key) {
     renderStatus(status, ERRORS.missingKey, {}, 'error');
-    return;
+    return null;
   }
 
   const settings = again || blindMode ? { ...current.settings } : { ...state.settings };
@@ -329,8 +343,10 @@ async function onRun(mode = 'run') {
         provider: providerLabel(settings.provider), model: settings.model, seconds: ((Date.now() - started) / 1000).toFixed(1),
       }),
     }, {}, 'info');
+    return run;
   } catch (err) {
     renderStatus(status, ...errorEntry(err), 'error');
+    return null;
   } finally {
     state.busy = false;
     field.syncInputs();
@@ -458,19 +474,66 @@ function setMode(mode) {
   local.set(STORAGE_KEY_MODE, state.mode);
   $('mode-walkthrough').setAttribute('aria-pressed', state.mode === 'walkthrough' ? 'true' : 'false');
   $('mode-free').setAttribute('aria-pressed', state.mode === 'free' ? 'true' : 'false');
-  const stepper = $('stepper');
-  show(stepper, state.mode === 'walkthrough');
-  if (state.mode === 'walkthrough' && stepper.childElementCount === 0) {
-    stepper.replaceChildren(el('p', { class: 'small muted', text: WALKTHROUGH.comingLater }));
-  }
+  show($('stepper'), state.mode === 'walkthrough');
+  if (state.mode === 'walkthrough') walkthrough.render();
   notify('mode');
 }
 
 function mountMode() {
   $('mode-walkthrough').addEventListener('click', () => setMode('walkthrough'));
   $('mode-free').addEventListener('click', () => setMode('free'));
-  // Free is the default until the walkthrough exists (Phase 5 changes the first-visit default).
-  setMode(local.get(STORAGE_KEY_MODE, 'free'));
+  // The first visit opens in Walkthrough; after that the last choice is remembered
+  // (finishing the walkthrough switches to Free).
+  setMode(local.get(STORAGE_KEY_MODE, 'walkthrough'));
+}
+
+// ---------- walkthrough helpers ----------
+
+// Put a brief on the field with `parent` as the node the next Run branches from.
+// asCurrent: also treat `parent` as the loaded node (so Run again makes its sibling).
+function loadBriefWithParent(brief, parent, { asCurrent = false } = {}) {
+  state.brief = copyBrief(brief);
+  state.prediction = '';
+  state.masked = false;
+  state.currentRunId = parent ? parent.id : null;
+  field.syncInputs();
+  renderOutput(asCurrent && parent ? parent : (parent || null));
+  renderStatus($('output-status'), null);
+  saveDraft();
+  notify('runs');
+  notify('brief');
+}
+
+// File a recorded walkthrough run without calling a provider. Labelled as recorded
+// everywhere it appears; never counted in calibration or the noise floor of live runs.
+function fileRecorded({ brief, parent, sameBriefAs, output, prediction, meta }) {
+  const settings = {
+    provider: meta.provider || 'recorded',
+    model: meta.model || 'recorded',
+    temperature: meta.temperature == null ? state.settings.temperature : meta.temperature,
+    maxOutputTokens: meta.maxOutputTokens,
+  };
+  const run = fileRun(state.runs, {
+    parent,
+    sameBriefAs,
+    brief,
+    settings,
+    prediction,
+    output,
+    similarityToParent: parent ? similarity(parent.output, output) : null,
+    recorded: { model: meta.model || '', date: meta.date || '' },
+  });
+  state.currentRunId = run.id;
+  state.brief = copyBrief(run.brief);
+  state.prediction = '';
+  saveRuns();
+  field.syncInputs();
+  renderOutput(run);
+  renderStatus($('output-status'), null);
+  saveDraft();
+  notify('runs');
+  notify('brief');
+  return run;
 }
 
 // ---------- settings drawer ----------
@@ -513,6 +576,7 @@ function mountClearEverything() {
     compare.close();
     calibrationView.close();
     mountSettingsBody($('settings-body'));
+    walkthrough.reset();
     notify('runs');
     notify('brief');
   });
@@ -574,6 +638,16 @@ const compare = mountCompare({
   },
 });
 
+const walkthrough = mountWalkthrough({
+  host: $('stepper'),
+  hasKey: () => Boolean(getKey()),
+  loadBriefWithParent,
+  runLive: (mode) => onRun(mode),
+  fileRecorded,
+  openCompare: (left, right) => compare.open(left, right),
+  onFinish: () => setMode('free'),
+});
+
 subscribe((topic) => {
   if (topic === 'brief' || topic === 'runs' || topic === 'settings') {
     field.refresh();
@@ -583,13 +657,15 @@ subscribe((topic) => {
     tree.render();
     mountTreeActions();
     compare.refresh();
+    if (state.mode === 'walkthrough') walkthrough.render();
   }
+  if (topic === 'settings' && state.mode === 'walkthrough') walkthrough.render();
 });
 
 mountPromptActions();
 mountFieldActions();
 mountTreeActions();
-mountMode();
+walkthrough.init().then(() => mountMode());
 mountSettings();
 mountClearEverything();
 field.syncInputs();

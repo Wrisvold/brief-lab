@@ -11,6 +11,11 @@ import { buildTree, labelFor, codeOf } from './tree.js';
 
 // The label for a node as words, from the computed label data.
 export function labelText(runs, run) {
+  const base = baseLabel(runs, run);
+  return run.recorded ? `${TREE.recorded} · ${base}` : base;
+}
+
+function baseLabel(runs, run) {
   const label = labelFor(runs, run);
   switch (label.kind) {
     case 'full': return TREE.fullBrief;

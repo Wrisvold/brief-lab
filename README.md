@@ -44,8 +44,10 @@ brief-lab/
     compare-view.js   the Compare panel
     blind.js          blind mode: drop selection, outcomes, calibration
     blind-view.js     the blind response panel; calibration-view.js the calibration table
+    walkthrough.js    the eight stops, the brief per stop, reading and building the recording
+    walkthrough-view.js  the stepper
     dom.js, storage.js, state.js   small helpers
-    (later phases add: walkthrough, export)
+    (Phase 6 adds: export/import controls, lineage summary)
   data/
     walkthrough.json           the built-in sample task
     walkthrough-recorded.json  recorded walkthrough runs (Phase 5; you generate this from the app)
@@ -101,9 +103,31 @@ the structure (one entry per element, three sub-fields under `rules`).
 
 ## Recording the walkthrough runs
 
-Phase 5 will add the instructions. In short: run the walkthrough yourself with a key, export the tree,
-and save the export as `data/walkthrough-recorded.json`. The app replays those runs for students who
-have no key yet, labeled as recorded on every output.
+Students who have no key yet can replay a recorded walkthrough. The app ships with
+`data/walkthrough-recorded.json` as an empty placeholder, so until you record it, the stepper offers
+no replay. Record it with the app itself; do not write outputs by hand.
+
+1. Open the app, put your key in Settings, and switch the mode indicator to **Walkthrough**.
+2. Press **Start the walkthrough** and go through all eight stops with **Run this stop** (stop 7 is
+   Run again). Fill the Prediction box if you want your predictions shown to students.
+3. At stop 7, press **Save these runs as the recorded walkthrough (instructor)**. The browser downloads
+   `walkthrough-recorded.json`, built from the eight live runs of this walkthrough (provider, model,
+   date, temperature, and each stop's output).
+4. Replace `data/walkthrough-recorded.json` in the hosted folder with the download.
+
+Every replayed output is labelled "Recorded run · model · date — not live". Recorded runs are never
+mixed into the calibration record or into the noise floor of live runs, and any stop can be re-run
+live with **Replay live with my key**. To re-record after a model change, repeat the steps; the
+button is enabled only when all eight stops have live runs.
+
+## The walkthrough
+
+The stepper adds elements in the order their effect is easiest to see on the sample task (Task,
+Context, Rules, Criteria, Persona, Examples, Steps), then runs the full brief again for the noise
+floor. The field still shows elements in framework order. The order comes from `stopOrder` in
+`data/walkthrough.json`; the stop copy is `WALKTHROUGH.stops` in `js/copy.js`. Progress is kept in
+the browser so a reload resumes the same stop; "Start over" restarts from stop 0 and keeps the runs
+already in the tree. The first visit opens in Walkthrough mode; finishing switches to Free.
 
 ## Clearing student storage
 

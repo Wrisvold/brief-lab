@@ -2,6 +2,55 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## Phase 5 — The walkthrough (done 2026-09-17)
+
+### Done
+- `js/walkthrough.js` (pure, 6 tests): the stop order from `data/walkthrough.json` (Task, Context,
+  Rules, Criteria, Persona, Examples, Steps, then Run again); `briefForStop` (the task file's text for
+  every element reached so far, plugged; the rest empty so the field visibly grows); `readRecording`
+  (validates the recorded file, ignores empty stops); `buildRecording` (the file from eight runs).
+  78 tests pass in all.
+- The stepper (`js/walkthrough-view.js`) above the field in Walkthrough mode: eight stop chips
+  (done ones ticked, current in evergreen with a gold ring), the stop's paragraph, then **Run this
+  stop** (live) or **Replay the recorded run** when the recording has that stop, then the stop's
+  "what changed" pointer with **Open Compare** (parent vs. this stop), **Replay live with my key**
+  for recorded stops, and **Next stop** / **Finish**. Stop 7 is a Run again of stop 6 (a same-brief
+  sibling) and points at the noise-floor note. The Persona stop's copy makes the §1.8 point: what
+  changed (tone, address, structure) and what did not (the numbers).
+- Entering a stop loads its brief onto the field with the previous stop's run as the parent, so the
+  walkthrough builds a real lineage: A1 → A2 → ... → A7, with A8 beside A7 as "same brief".
+- Recorded runs: `data/walkthrough-recorded.json` ships as an empty placeholder (schema, eight empty
+  stops, a `_readme` line). Replays are filed as runs with `recorded: { model, date }`, labelled
+  "Recorded run · model · date — not live" above the output and "recorded ·" in the tree, excluded
+  from calibration and from live same-brief groups. **Save these runs as the recorded walkthrough
+  (instructor)** at stop 7 downloads the file built from the eight live runs; enabled only when all
+  eight are live. README says how.
+- Progress (stop, run per stop) is kept in `localStorage`; a reload resumes. **Start over** restarts
+  from stop 0 and keeps runs in the tree. **Finish** switches the mode to Free and leaves the field and
+  tree as they are. The first visit now opens in Walkthrough; the last mode chosen is remembered.
+- Checked in the browser with a temporary filled recording (restored to the placeholder before
+  commit): start, eight replays, the field growing one element per stop, eight nodes in the right
+  lineage, the recorded label on every output, Finish to Free mode. Live stops need your key.
+
+### Decisions made on my own (say if any is wrong)
+1. **The recording is produced by a button in the app**, not by hand-editing an export: at stop 7,
+   with eight live runs, "Save these runs as the recorded walkthrough (instructor)" downloads
+   `walkthrough-recorded.json`. This keeps the instruction script-free and uses the app's own data.
+   The button is visible to students too, but disabled unless all eight stops are live and it only
+   downloads a file.
+2. **Elements not yet reached are empty**, not pre-filled and unplugged, so the field shows the brief
+   growing. The full text arrives one element per stop.
+3. **Replaying stop 7** files the recorded run as a same-brief sibling of stop 6, mirroring what
+   Run again does live; the noise-floor note then works on recorded pairs too (recorded with
+   recorded only).
+4. **Stops are reachable out of order only backwards**: a chip is enabled when that stop or the one
+   before it has a run. Jumping back reloads that stop's brief with its parent, so a re-run branches
+   correctly.
+
+### Next
+- Phase 6: export/import controls with the round-trip test, Copy lineage summary with formatter
+  tests, explainer copy pass, accessibility and cross-browser checks, final README and STATUS.
+
 ## Phase 4 — Blind mode and the criteria checklist (done 2026-09-17)
 
 ### Done

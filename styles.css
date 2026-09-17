@@ -176,15 +176,49 @@ a { color: var(--evergreen); }
   color: var(--paper);
 }
 
-/* ---------- Stepper (Phase 5) ---------- */
+/* ---------- Stepper (the walkthrough) ---------- */
 
 .stepper {
-  display: flex;
-  gap: 6px;
-  padding: 8px var(--gap-lg);
+  padding: 8px var(--gap-lg) 12px;
   background: var(--ice);
   border-bottom: 1px solid var(--line);
+}
+.stepper-stops {
+  display: flex;
+  gap: 4px;
   overflow-x: auto;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.stepper-stop {
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.stepper-stop.is-done { border-color: var(--evergreen); color: var(--evergreen); }
+.stepper-stop.is-current { background: var(--evergreen); color: var(--paper); border-color: var(--evergreen); box-shadow: 0 0 0 2px var(--gold); }
+.stepper-stop:disabled { opacity: 0.5; cursor: not-allowed; }
+.stepper-body { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: var(--gap-lg); align-items: start; }
+.stepper-copy h3 { margin-bottom: 4px; }
+.stepper-copy p { margin: 0 0 6px; font-size: 14px; }
+.stepper-after { border-left: 4px solid var(--gold); padding-left: 10px; }
+.stepper-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.stepper-actions .small { flex-basis: 100%; }
+@media (max-width: 800px) { .stepper-body { grid-template-columns: 1fr; } }
+
+.recorded-label {
+  border-left: 4px solid var(--gold);
+  background: var(--paper);
+  padding: 4px 10px;
+  margin: 0 0 6px;
+  font-size: 13px;
 }
 
 /* ---------- Layout ---------- */
