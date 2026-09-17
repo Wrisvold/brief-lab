@@ -97,8 +97,9 @@ app shows them, the element it adds, and the chips filling up. For example the f
   *run again and compare*, *fingerprint*, *noise floor*.
 - Name every control exactly as the app labels it (see the appendix), in bold.
 - Put the stop-to-element mapping on its own page or panel, and refer back to it.
-- Say plainly, once, that a ChatGPT, Gemini, or Claude subscription is not an API key, and that the free
-  Gemini key from Google AI Studio is enough.
+- Say plainly, once, that a ChatGPT, Gemini, or Claude subscription is not an API key. The app opens
+  on Claude (the classes use it; a Claude key needs a small prepaid balance), and a student who wants
+  a no-cost option can switch the provider to Gemini, whose free key from Google AI Studio is enough.
 - Say plainly, once, that the key stays in the student's browser and goes only to the provider, and
   that free-tier providers may use what is sent for training, so nothing confidential goes in.
 - Present "no visible difference" in a blind round as a finding about the element, not a mistake.

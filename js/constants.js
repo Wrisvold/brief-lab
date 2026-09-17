@@ -9,13 +9,23 @@
 
 // Which provider is selected when a student opens the app for the first time.
 // Must be one of the keys in PROVIDERS below.
-export const DEFAULT_PROVIDER = 'gemini';
+export const DEFAULT_PROVIDER = 'anthropic';
 
 // The two providers the app can call. To change a default model name, edit
 // `defaultModel`. Providers retire model names without notice; when that
 // happens the app shows a plain message and the student can type a new name
 // in Settings without anyone editing this file.
 export const PROVIDERS = {
+  // Listed first because it is the default; the classes use Claude.
+  anthropic: {
+    label: 'Claude (Anthropic)',
+    // Haiku is the small, fast, inexpensive Claude model; fine for a course.
+    // Verify at https://docs.claude.com/en/docs/about-claude/models
+    defaultModel: 'claude-haiku-4-5',
+    endpoint: 'https://api.anthropic.com/v1/messages',
+    keyUrl: 'https://console.anthropic.com/settings/keys',
+    modelListUrl: 'https://docs.claude.com/en/docs/about-claude/models',
+  },
   gemini: {
     // Shown in the Settings drawer.
     label: 'Gemini (Google AI Studio)',
@@ -35,15 +45,6 @@ export const PROVIDERS = {
     endpoint: 'https://api.openai.com/v1/chat/completions',
     keyUrl: 'https://platform.openai.com/api-keys',
     modelListUrl: 'https://platform.openai.com/docs/models',
-  },
-  anthropic: {
-    label: 'Claude (Anthropic)',
-    // Haiku is the small, fast, inexpensive Claude model; fine for a course.
-    // Verify at https://docs.claude.com/en/docs/about-claude/models
-    defaultModel: 'claude-haiku-4-5',
-    endpoint: 'https://api.anthropic.com/v1/messages',
-    keyUrl: 'https://console.anthropic.com/settings/keys',
-    modelListUrl: 'https://docs.claude.com/en/docs/about-claude/models',
   },
 };
 

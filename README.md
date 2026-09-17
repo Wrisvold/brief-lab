@@ -77,9 +77,10 @@ network. The copy tests also check that no student-facing text uses the banned w
 Open `js/constants.js`. Every value has a plain-language comment above it. The ones you are most
 likely to touch:
 
-- `PROVIDERS.gemini.defaultModel`, `PROVIDERS.openai.defaultModel`, and
-  `PROVIDERS.anthropic.defaultModel` (Claude; Haiku by default): the model name shown before a
-  student picks one. Model names change often, so the Settings drawer has a **List models** button
+- `DEFAULT_PROVIDER`: which provider a student sees first. Claude (`anthropic`), because the classes
+  use Claude; Gemini's free tier remains the no-cost option a student can switch to in Settings.
+- `PROVIDERS.anthropic.defaultModel` (Claude; Haiku by default), `PROVIDERS.gemini.defaultModel`, and
+  `PROVIDERS.openai.defaultModel`: the model name shown before a student picks one. Model names change often, so the Settings drawer has a **List models** button
   that asks the provider for the current names with the student's key; the name field is also free
   text. Change the defaults here when a name is retired, but nothing breaks if you do not.
 - `DEFAULT_TEMPERATURE`, `TEMPERATURE_MIN`, `TEMPERATURE_MAX`: the temperature dial.
