@@ -250,10 +250,11 @@ export function mountCompare({ panel, body, actions, onRunAgain, onClose }) {
 }
 
 // Default pair for a node: its parent on the left, the node on the right.
+// For a same-brief (run again) node, the left is the node it was run from.
 // A node with no parent compares against the current node, or the previous run.
 export function defaultPair(runs, run) {
-  const parent = parentOf(runs, run);
-  if (parent) return [parent, run];
+  const comparisonNode = run.sameBriefAs ? byId(runs, run.sameBriefAs) : parentOf(runs, run);
+  if (comparisonNode) return [comparisonNode, run];
   const other = runs.find((r) => r.id === state.currentRunId && r !== run) || runs.find((r) => r !== run) || null;
   return [other, run];
 }
