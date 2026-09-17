@@ -2,6 +2,25 @@
 
 Kept current at the end of each phase. Newest phase first.
 
+## QA pass by John Ledford (merged 2026-09-17)
+
+Branch `fix/qa-pass-2026-09`, four commits, reviewed and fast-forwarded into main. All 82 tests pass.
+
+- `status.js`: null placeholders were passed straight into `replaceChildren`, which rendered the
+  text "nullnull" when a status had no message or next line. Now filtered out.
+- `styles.css`: the tree row's time and "current" mark no longer shrink and overlap the Compare button.
+- `compare-view.js`: the default Compare pair for a run-again node puts the node it was run again
+  from on the left, not that node's parent.
+- `field.js`: the wire drawing area now always covers the Brief node's right edge.
+
+API-key handling was re-checked at merge time: the key lives in `sessionStorage` only, is never
+written to `localStorage`, exports, or the summary, never appears in a URL, is never logged, and is
+sent only as a request header to the two hard-coded provider endpoints. Johnny's branch made no
+changes there and none were needed.
+
+Still outstanding from Johnny's checklist: the recorded walkthrough file (`data/walkthrough-recorded.json`
+is still the empty placeholder), a live run with a real key, and the Firefox / Safari check.
+
 ## Phase 6 — Export and polish (done 2026-09-17)
 
 ### Done
