@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brief Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#field">Skip to the field</a>
+
+  <header class="topbar">
+    <div class="topbar-title">
+      <h1 id="app-title">Brief Lab</h1>
+      <p class="tagline" id="app-tagline"></p>
+    </div>
+    <div class="topbar-controls">
+      <div class="mode" role="group" aria-labelledby="mode-label">
+        <span id="mode-label" class="mode-label"></span>
+        <button type="button" class="mode-button" id="mode-walkthrough" aria-pressed="false"></button>
+        <button type="button" class="mode-button" id="mode-free" aria-pressed="true"></button>
+      </div>
+      <button type="button" class="button" id="btn-settings" aria-controls="settings" aria-expanded="false"></button>
+    </div>
+  </header>
+
+  <!-- Walkthrough stepper. Hidden in Free mode. Filled in Phase 5. -->
+  <nav id="stepper" class="stepper" aria-label="Walkthrough stops" hidden></nav>
+
+  <main class="layout">
+    <!-- Region 1: the field -->
+    <section id="field" class="region region-field" aria-labelledby="field-title">
+      <div class="region-head">
+        <h2 id="field-title"></h2>
+        <div class="region-actions" id="field-actions"></div>
+      </div>
+      <details class="explainer" data-explainer="field"></details>
+      <div class="field-nodes" id="field-nodes"></div>
+      <div class="assembler" id="assembler"></div>
+    </section>
+
+    <!-- Region 2: the output column -->
+    <div class="output-column">
+      <section id="prompt" class="region region-prompt" aria-labelledby="prompt-title">
+        <div class="region-head">
+          <h2 id="prompt-title"></h2>
+          <div class="region-actions" id="prompt-actions"></div>
+        </div>
+        <details class="explainer" data-explainer="prompt"></details>
+        <pre class="mono prompt-text" id="prompt-text" tabindex="0"></pre>
+        <p class="counts" id="prompt-counts"></p>
+      </section>
+
+      <section id="output" class="region region-output" aria-labelledby="output-title">
+        <div class="region-head">
+          <h2 id="output-title"></h2>
+          <div class="region-actions" id="output-actions"></div>
+        </div>
+        <details class="explainer" data-explainer="output"></details>
+        <div class="status" id="output-status" role="status" aria-live="polite"></div>
+        <pre class="mono output-text" id="output-text" tabindex="0"></pre>
+        <div class="criteria" id="criteria"></div>
+        <div class="blind-panel" id="blind-panel" hidden></div>
+      </section>
+    </div>
+
+    <!-- Region 3: the tree drawer -->
+    <aside id="tree" class="region region-tree" aria-labelledby="tree-title">
+      <div class="region-head">
+        <h2 id="tree-title"></h2>
+        <div class="region-actions" id="tree-actions"></div>
+      </div>
+      <details class="explainer" data-explainer="tree"></details>
+      <div class="tree-list" id="tree-list"></div>
+    </aside>
+  </main>
+
+  <!-- Compare: a full-width panel over the field. Filled in Phase 3. -->
+  <section id="compare" class="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="compare-title" hidden>
+    <div class="panel-inner">
+      <div class="region-head">
+        <h2 id="compare-title"></h2>
+        <div class="region-actions" id="compare-actions"></div>
+      </div>
+      <details class="explainer" data-explainer="compare"></details>
+      <div id="compare-body"></div>
+    </div>
+  </section>
+
+  <!-- Settings drawer. Filled in Phase 2. -->
+  <aside id="settings" class="drawer-settings" role="dialog" aria-labelledby="settings-title" hidden>
+    <div class="region-head">
+      <h2 id="settings-title"></h2>
+      <div class="region-actions" id="settings-actions"></div>
+    </div>
+    <div id="settings-body"></div>
+  </aside>
+
+  <footer class="footer">
+    <p id="footer-note"></p>
+    <button type="button" class="button button-quiet" id="btn-clear-everything"></button>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

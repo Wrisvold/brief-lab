@@ -1,0 +1,10 @@
+{
+  "name": "brief-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Brief Lab: a static, single-folder instrument for building, testing, and reading seven-element briefs (AIST 6300, GCSU).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

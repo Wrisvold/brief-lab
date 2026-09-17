@@ -1,0 +1,32 @@
+{
+  "id": "hybrid-work-standard",
+  "title": "The Hybrid Work Standard announcement",
+  "summary": "Draft a short internal announcement about a hybrid-work policy change at a fictional Georgia company. Every element has something visible to do: a date and a dollar amount that must be stated exactly, a promise that must not be made, and a group the policy does not yet cover.",
+  "fictionNote": "Harrow & Vance Supply Co., its people, and its policy are invented for this course. Any resemblance to a real company is accidental.",
+  "stopOrder": ["task", "context", "rules", "criteria", "persona", "examples", "steps", "again"],
+  "elements": {
+    "persona": {
+      "text": "You are the head of Human Resources at a mid-sized Georgia company, writing to every employee at once. Direct, warm, and plain. No corporate cheerleading, no apologies."
+    },
+    "task": {
+      "text": "Draft a short internal announcement, under 250 words, telling employees about the new Hybrid Work Standard."
+    },
+    "context": {
+      "text": "Harrow & Vance Supply Co. is a restaurant-supply distributor based in Macon, Georgia, with about 340 employees: office staff at headquarters in Macon, warehouse and delivery crews in Macon, Savannah, and Dalton, and 14 remote-only employees hired out of state between 2021 and 2023.\nSince 2021, office staff have been free to work from anywhere. That ends. Starting Monday, January 12, 2027, office-based employees will work on site three days a week: Tuesday, Wednesday, and Thursday. Headquarters employees will receive a $60 monthly parking-and-transit stipend.\nNothing changes for warehouse and delivery crews; they are already on site every day. Leadership has not decided what the standard means for the 14 out-of-state employees.\nThe announcement goes to all employees at once, so warehouse crews and out-of-state staff will read it too. Some office staff will be unhappy. The purpose is clear, calm information, not persuasion."
+    },
+    "examples": {
+      "text": "An opening with the shape we want:\n\"Starting Monday, January 12, 2027, employees based at the Macon office will work on site Tuesday, Wednesday, and Thursday. Here is what that means for you.\"\n\nA sentence for a case the policy does not cover:\n\"If you were hired on a remote-only agreement outside Georgia, this announcement does not cover your situation. Human Resources will contact you directly.\""
+    },
+    "rules": {
+      "do": "State the effective date and the three on-site days exactly as given. State the stipend as $60 per month. Say plainly that nothing changes for warehouse and delivery crews.",
+      "dont": "Do not promise anything about pay, headcount, or a future review of the policy. Do not speculate about why the change is being made. Do not use the words \"exciting\" or \"family.\"",
+      "fallback": "If a reader's situation is not covered by the policy as described, say \"This announcement does not cover that case; Human Resources will follow up directly.\" Do not invent an answer for the out-of-state employees."
+    },
+    "criteria": {
+      "text": "Under 250 words.\nNames Monday, January 12, 2027 as the effective date.\nNames Tuesday, Wednesday, and Thursday as the on-site days.\nStates the $60 monthly stipend.\nSays warehouse and delivery crews are not affected.\nTells out-of-state employees that Human Resources will follow up, without promising an outcome.\nMakes no promise about pay, headcount, or a future review."
+    },
+    "steps": {
+      "text": "1. Lead with the change and the effective date.\n2. Say who is affected and who is not.\n3. State the stipend.\n4. Address the case the policy does not cover.\n5. Close with where to send questions."
+    }
+  }
+}
