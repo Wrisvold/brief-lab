@@ -36,12 +36,17 @@ test('briefForStop plugs only the elements reached, in framework order on the fi
   assert.equal(assemble(b7), assemble(briefForStop(task, 6)));
 });
 
-test('the shipped recorded file is a valid placeholder with no usable stops yet', () => {
+test('the shipped recorded file is valid: eight stops, each with a labelled model and date', () => {
   const r = readRecording(recorded, task.id);
   assert.equal(r.ok, true);
-  assert.equal(r.stops.size, 0);
   assert.equal(recorded.format, RECORDING_FORMAT);
   assert.equal(recorded.stops.length, 8);
+  // Either the empty placeholder (no usable stops) or a full recording (all eight).
+  assert.ok(r.stops.size === 0 || r.stops.size === 8, `recording has ${r.stops.size} usable stops`);
+  if (r.stops.size === 8) {
+    assert.ok(r.meta.model && r.meta.date, 'a filled recording must name its model and date');
+    for (let i = 0; i < 8; i++) assert.ok(r.stops.get(i).output.trim().length > 50, `stop ${i} output is too short`);
+  }
 });
 
 test('readRecording accepts filled stops and rejects wrong files', () => {
